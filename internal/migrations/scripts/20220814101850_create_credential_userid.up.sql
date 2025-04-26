@@ -1,0 +1,1 @@
+ALTER TABLE credentials ADD COLUMN user_id VARCHAR(255);

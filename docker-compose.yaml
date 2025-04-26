@@ -1,0 +1,53 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  postgres:
+    image: postgres:13
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_MULTIPLE_DATABASES=auth,user
+    volumes:
+      - 'postgres_db:/var/lib/postgresql/data/'
+      - '.db_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql'
+    networks:
+      vps_network:
+  key_management_service_migration:
+    image: fossapps/key-management-service
+    command:
+      - ./key-management-service
+      - db
+      - migrate
+    environment:
+      - DatabaseConfig__Host=postgres
+      - DatabaseConfig__Port=5432
+      - DatabaseConfig__Database=auth
+      - ASPNETCORE_URLS=http://+:5001
+      - DatabaseConfig__MigrationTableName=__migrations_key_management
+      - DatabaseConfig__Password=mysecretpassword
+      - DatabaseConfig__User=postgres
+    networks:
+      vps_network:
+    depends_on:
+      - postgres
+  key_management_service:
+    image: fossapps/key-management-service
+    ports:
+      - '5001:5001'
+    environment:
+      - DatabaseConfig__Host=postgres
+      - DatabaseConfig__Port=5432
+      - DatabaseConfig__Database=auth
+      - ASPNETCORE_URLS=http://+:5001
+      - DatabaseConfig__MigrationTableName=__migrations_key_management
+      - DatabaseConfig__Password=mysecretpassword
+      - DatabaseConfig__User=postgres
+    depends_on:
+      - postgres
+    networks:
+      vps_network:
+volumes:
+  postgres_db:
+
+networks:
+  vps_network:
