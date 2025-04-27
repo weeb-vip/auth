@@ -8,7 +8,7 @@ import (
 
 func configureServerCommand(rootCmd *cobra.Command) {
 	var serverCmd = &cobra.Command{
-		Use:   "",
+		Use:   "server",
 		Short: "manipulate server",
 	}
 
