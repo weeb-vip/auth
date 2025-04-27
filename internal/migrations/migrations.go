@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
 
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
@@ -37,7 +37,7 @@ func getDBDriver(db *gorm.DB, migrationTableName string) (database.Driver, error
 		return nil, err
 	}
 
-	return postgres.WithInstance(sqlDB, &postgres.Config{
+	return mysql.WithInstance(sqlDB, &mysql.Config{
 		MigrationsTable: migrationTableName,
 	})
 }

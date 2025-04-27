@@ -27,13 +27,13 @@ type AppConfig struct {
 }
 
 type DBConfig struct {
-	Host               string `env:"CONFIG__DB_CONFIG__HOST" required:"true" default:"localhost"`
-	Port               string `env:"CONFIG__DB_CONFIG__PORT" required:"true" default:"5432"`
-	User               string `env:"CONFIG__DB_CONFIG__USER" required:"true" default:"postgres"`
-	Password           string `env:"CONFIG__DB_CONFIG__PASS" required:"true" default:"mysecretpassword"`
-	DB                 string `env:"CONFIG__DB_CONFIG__DB" required:"true" default:"auth"`
-	SSL                bool   `env:"CONFIG__DB_CONFIG__SSL" default:"false"`
-	MigrationTableName string `env:"CONFIG__DB_CONFIG__MIGRATION_TABLE_NAME" default:"__migrations_auth"`
+	Host               string `env:"DBHOST" required:"true" default:"localhost"`
+	Port               uint   `env:"DBPORT" required:"true" default:"5432"`
+	User               string `env:"DBUSER" required:"true" default:"postgres"`
+	Password           string `env:"DBPASSWORD" required:"true" default:"mysecretpassword"`
+	DB                 string `env:"DBNAME" required:"true" default:"auth"`
+	SSL                string `env:"DBSSL" default:"false"`
+	MigrationTableName string `env:"DBMIGRATIONTABLE" default:"__migrations_auth"`
 }
 
 type RefreshTokenConfig struct {

@@ -5,10 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-
 	"github.com/weeb-vip/auth/config"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 const (
@@ -19,15 +18,6 @@ const (
 type SafeDBService struct {
 	mu sync.Mutex
 	db DB //nolint
-}
-
-type dbConfig struct {
-	host     string
-	port     string
-	user     string
-	password string
-	dbname   string
-	sslmode  bool
 }
 
 type Service struct {
@@ -54,22 +44,9 @@ func (service *Service) setupSQLDB(db *gorm.DB) {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 }
 
-func (service *Service) connect(config dbConfig) *gorm.DB {
-	sslmode := "disable"
-	if config.sslmode {
-		sslmode = "enable"
-	}
+func (service *Service) connect(cfg config.DBConfig) *gorm.DB {
 
-	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN: fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-			config.host,
-			config.port,
-			config.user,
-			config.password,
-			config.dbname,
-			sslmode,
-		),
-	}), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&tls=%s&interpolateParams=true", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DB, cfg.SSL)), &gorm.Config{})
 
 	if err != nil {
 		panic("failed to connect database")
@@ -89,14 +66,7 @@ func NewDBService() DB { //nolint
 	}
 
 	temp := &Service{}
-	temp.connect(dbConfig{
-		host:     cfg.DBConfig.Host,
-		port:     cfg.DBConfig.Port,
-		user:     cfg.DBConfig.User,
-		password: cfg.DBConfig.Password,
-		dbname:   cfg.DBConfig.DB,
-		sslmode:  cfg.DBConfig.SSL,
-	})
+	temp.connect(cfg.DBConfig)
 
 	dbservice.SetDB(temp)
 
