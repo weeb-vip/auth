@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . .
 
 RUN make generate
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o auth ./cmd/cli/
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/cli/
 
 FROM gcr.io/distroless/static-debian10
 WORKDIR /app
@@ -11,4 +11,4 @@ COPY --from=builder --chown=nonroot:nonroot /app/auth .
 ARG VERSION
 ENV APP__VERSION="${VERSION}"
 USER nonroot
-CMD ["./auth", "server", "start"]
+CMD ["./main", "server", "start"]
