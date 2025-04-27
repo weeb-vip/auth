@@ -2,6 +2,8 @@ package passwordreset
 
 import (
 	"context"
+	"github.com/weeb-vip/auth/mocks"
+	"go.uber.org/mock/gomock"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,8 +13,10 @@ import (
 func TestPasswordResetService_PasswordResetRequest(t *testing.T) {
 	t.Run("Test PasswordResetRequest", func(t *testing.T) {
 		a := assert.New(t)
+		ctrl := gomock.NewController(t)
 
-		credentialService := credential.NewCredentialService()
+		userClient := mocks.NewMockUserClientInterface(ctrl)
+		credentialService := credential.NewCredentialService(userClient)
 
 		cred, err := credentialService.Register(context.TODO(), "username", "password")
 

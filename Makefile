@@ -8,7 +8,8 @@ migrate:
 	go run cmd/cli/main.go db migrate
 
 mocks:
-	go get github.com/golang/mock/mockgen/model
-	go install github.com/golang/mock/mockgen@v1.6.0
+	go get go.uber.org/mock/mockgen/model
+	go install go.uber.org/mock/mockgen@latest
 	mockgen -destination=./mocks/mock_credentials.go -package=mocks github.com/weeb-vip/auth/internal/services/credential Credential
 	mockgen -destination=./mocks/mock_tokenizer.go -package=mocks github.com/weeb-vip/auth/internal/jwt Tokenizer
+	mockgen -destination=./mocks/mock_user_client.go -package=mocks github.com/weeb-vip/auth/internal/services/user_client UserClientInterface

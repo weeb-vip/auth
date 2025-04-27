@@ -4,8 +4,6 @@ import (
 	"github.com/weeb-vip/auth/internal/services/user_client"
 	"net/http"
 
-	"github.com/weeb-vip/auth/internal/services/notification"
-
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
 	"github.com/sirupsen/logrus"
@@ -39,7 +37,6 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 	sessionService := session.NewSessionService()
 	refreshTokenService := refresh_token.NewRefreshTokenService(conf.RefreshTokenConfig)
 	validationTokenService := validation_token.NewValidationTokenService(tokenizer)
-	notificationService := notification.NewSNSService(conf.SNSConfig)
 	resolvers := &graph.Resolver{
 		CredentialService:    authenticationService,
 		PasswordResetService: passwordResetService,
@@ -48,7 +45,6 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 		Config:               *conf,
 		RefreshTokenService:  refreshTokenService,
 		ValidationToken:      validationTokenService,
-		NotificationService:  notificationService,
 		UserClient:           userClient,
 	}
 	cfg := generated.Config{Resolvers: resolvers}
