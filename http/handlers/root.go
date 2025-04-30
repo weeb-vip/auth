@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/weeb-vip/auth/internal/services/user_client"
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -31,8 +30,7 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 		panic(err)
 	}
 
-	userClient := user_client.NewUserClient(conf.UserClient)
-	authenticationService := credential.NewCredentialService(userClient)
+	authenticationService := credential.NewCredentialService()
 	passwordResetService := passwordreset.NewPasswordResetService()
 	sessionService := session.NewSessionService()
 	refreshTokenService := refresh_token.NewRefreshTokenService(conf.RefreshTokenConfig)
@@ -45,7 +43,6 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 		Config:               *conf,
 		RefreshTokenService:  refreshTokenService,
 		ValidationToken:      validationTokenService,
-		UserClient:           userClient,
 	}
 	cfg := generated.Config{Resolvers: resolvers}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(cfg))

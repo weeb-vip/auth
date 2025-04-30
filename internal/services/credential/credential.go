@@ -2,7 +2,6 @@ package credential
 
 import (
 	"context"
-	"github.com/weeb-vip/auth/internal/services/user_client"
 
 	"github.com/weeb-vip/auth/internal/services/credential/models"
 	"github.com/weeb-vip/auth/internal/services/credential/repositories"
@@ -15,15 +14,13 @@ const (
 
 type credentialService struct {
 	credentialsRepository repositories.CredentialsRepository
-	userClient            user_client.UserClientInterface
 }
 
-func NewCredentialService(userClient user_client.UserClientInterface) Credential {
+func NewCredentialService() Credential {
 	credentialRepository := repositories.GetCredentialsRepository()
 
 	return &credentialService{
 		credentialsRepository: credentialRepository,
-		userClient:            userClient,
 	}
 }
 

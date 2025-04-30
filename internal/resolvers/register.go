@@ -2,7 +2,6 @@ package resolvers
 
 import (
 	"context"
-	"github.com/weeb-vip/auth/internal/services/user_client"
 	"log"
 
 	"github.com/weeb-vip/auth/config"
@@ -16,7 +15,6 @@ func Register( // nolint
 	ctx context.Context,
 	authenticationService credential.Credential,
 	validatonToken validation_token.ValidationToken,
-	userClient user_client.UserClientInterface,
 	conf config.Config,
 	firstName string,
 	lastName string,
@@ -56,10 +54,6 @@ func Register( // nolint
 	//	return nil, err
 	//}
 
-	err = userClient.AddUser(ctx, credentials.UserID, username, firstName, lastName, language)
-	if err != nil {
-		return nil, err
-	}
 	log.Println(token)
 
 	return &model.RegisterResult{

@@ -7,7 +7,6 @@ import (
 	"github.com/weeb-vip/auth/internal/services/passwordreset"
 	"github.com/weeb-vip/auth/internal/services/refresh_token"
 	"github.com/weeb-vip/auth/internal/services/session"
-	"github.com/weeb-vip/auth/internal/services/user_client"
 	"github.com/weeb-vip/auth/internal/services/validation_token"
 )
 
@@ -23,5 +22,4 @@ type Resolver struct {
 	Config               config.Config
 	RefreshTokenService  refresh_token.RefreshToken
 	ValidationToken      validation_token.ValidationToken
-	UserClient           user_client.UserClientInterface
 }
