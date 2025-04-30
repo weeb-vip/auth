@@ -17,11 +17,8 @@ type SessionDetails {
 }
 
 input RegisterInput {
-    firstname: String!
-    lastname: String!
     username: String!
     password: String!
-    language: Language!
 }
 
 input LoginInput {

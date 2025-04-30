@@ -14,7 +14,7 @@ import (
 
 // Register is the resolver for the Register field.
 func (r *mutationResolver) Register(ctx context.Context, input model.RegisterInput) (*model.RegisterResult, error) {
-	return resolvers.Register(ctx, r.CredentialService, r.ValidationToken, r.Config, input.Firstname, input.Lastname, input.Username, input.Password, string(input.Language))
+	return resolvers.Register(ctx, r.CredentialService, r.ValidationToken, input.Username, input.Password)
 }
 
 // CreateSession is the resolver for the CreateSession field.

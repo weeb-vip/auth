@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/graph/model"
 	"github.com/weeb-vip/auth/internal/services/validation_token"
 
@@ -15,12 +14,8 @@ func Register( // nolint
 	ctx context.Context,
 	authenticationService credential.Credential,
 	validatonToken validation_token.ValidationToken,
-	conf config.Config,
-	firstName string,
-	lastName string,
 	username string,
 	password string,
-	language string,
 ) (*model.RegisterResult, error) {
 	credentials, err := authenticationService.Register(ctx, username, password)
 	if err != nil {
