@@ -14,6 +14,7 @@ type Config struct {
 	DBConfig           DBConfig
 	RefreshTokenConfig RefreshTokenConfig
 	UserClient         UserClientConfig
+	EmailConfig        EmailConfig
 }
 
 type AppConfig struct {
@@ -41,6 +42,16 @@ type RefreshTokenConfig struct {
 
 type UserClientConfig struct {
 	URL string `env:"CONFIG__USER_CLIENT__URL" required:"true"`
+}
+
+type EmailConfig struct {
+	FromEmail string `env:"CONFIG__EMAIL_FROM_EMAIL" required:"true"`
+	FromName  string `env:"CONFIG__EMAIL_FROM_NAME" required:"true"`
+	Username  string `env:"CONFIG__EMAIL_USERNAME" required:"true"`
+	Password  string `env:"CONFIG__EMAIL_PASSWORD" required:"true"`
+	Host      string `env:"CONFIG__EMAIL_HOST" required:"true"`
+	Port      int    `env:"CONFIG__EMAIL_PORT" required:"true"`
+	SSLType   string `env:"CONFIG__EMAIL_SSL_TYPE" required:"true"`
 }
 
 func LoadConfig() (*Config, error) {

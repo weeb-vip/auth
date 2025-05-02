@@ -8,7 +8,9 @@ require (
 )
 
 require (
+	github.com/Boostport/mjml-go v0.15.0
 	github.com/DataDog/datadog-go v4.8.3+incompatible
+	github.com/aymerick/raymond v2.0.2+incompatible
 	github.com/go-chi/chi v1.5.5
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang-migrate/migrate/v4 v4.18.1
@@ -48,7 +50,7 @@ require (
 	github.com/ClickHouse/clickhouse-go v1.4.3 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
-	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/apache/arrow/go/v10 v10.0.1 // indirect
 	github.com/apache/thrift v0.16.0 // indirect
 	github.com/aws/aws-sdk-go v1.49.6 // indirect
@@ -158,6 +160,7 @@ require (
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/tetratelabs/wazero v1.8.0 // indirect
 	github.com/urfave/cli/v2 v2.27.6 // indirect
 	github.com/xanzy/go-gitlab v0.15.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

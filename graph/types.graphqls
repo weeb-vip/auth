@@ -52,4 +52,5 @@ type RegisterResult {
 
 input RequestPasswordResetInput {
     username: String!
+    email: String!
 }

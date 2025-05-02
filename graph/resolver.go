@@ -4,6 +4,7 @@ import (
 	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/internal/jwt"
 	"github.com/weeb-vip/auth/internal/services/credential"
+	"github.com/weeb-vip/auth/internal/services/mail"
 	"github.com/weeb-vip/auth/internal/services/passwordreset"
 	"github.com/weeb-vip/auth/internal/services/refresh_token"
 	"github.com/weeb-vip/auth/internal/services/session"
@@ -22,4 +23,5 @@ type Resolver struct {
 	Config               config.Config
 	RefreshTokenService  refresh_token.RefreshToken
 	ValidationToken      validation_token.ValidationToken
+	MailService          mail.MailService
 }

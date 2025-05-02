@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/weeb-vip/auth/internal/services/mail"
+	"github.com/weeb-vip/auth/internal/services/mjml"
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -35,6 +37,8 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 	sessionService := session.NewSessionService()
 	refreshTokenService := refresh_token.NewRefreshTokenService(conf.RefreshTokenConfig)
 	validationTokenService := validation_token.NewValidationTokenService(tokenizer)
+	mjmlService := mjml.NewMJMLService()
+	mailService := mail.NewMailService(conf.EmailConfig, mjmlService)
 	resolvers := &graph.Resolver{
 		CredentialService:    authenticationService,
 		PasswordResetService: passwordResetService,
@@ -43,6 +47,7 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 		Config:               *conf,
 		RefreshTokenService:  refreshTokenService,
 		ValidationToken:      validationTokenService,
+		MailService:          mailService,
 	}
 	cfg := generated.Config{Resolvers: resolvers}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(cfg))
