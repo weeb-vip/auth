@@ -6,6 +6,7 @@ import (
 	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/internal/services/mjml"
 
+	"github.com/wneessen/go-mail"
 	"net/smtp"
 )
 

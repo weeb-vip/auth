@@ -162,6 +162,7 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tetratelabs/wazero v1.8.0 // indirect
 	github.com/urfave/cli/v2 v2.27.6 // indirect
+	github.com/wneessen/go-mail v0.6.2 // indirect
 	github.com/xanzy/go-gitlab v0.15.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.1 // indirect
