@@ -6,8 +6,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/weeb-vip/auth/graph/generated"
 	"github.com/weeb-vip/auth/graph/model"
 	"github.com/weeb-vip/auth/internal/resolvers"
@@ -30,7 +28,7 @@ func (r *mutationResolver) RequestPasswordReset(ctx context.Context, input model
 
 // RefreshToken is the resolver for the RefreshToken field.
 func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*model.SigninResult, error) {
-	panic(fmt.Errorf("not implemented: RefreshToken - RefreshToken"))
+	return resolvers.RefreshToken(ctx, r.SessionService, r.RefreshTokenService, r.JwtTokenizer, token)
 }
 
 // AvailabilityByUsername is the resolver for the availabilityByUsername field.
