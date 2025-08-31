@@ -39,7 +39,7 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*mod
 
 // VerifyEmail is the resolver for the VerifyEmail field.
 func (r *mutationResolver) VerifyEmail(ctx context.Context) (bool, error) {
-	return resolvers.EmailVerification(ctx, r.CredentialService)
+	return resolvers.EmailVerification(ctx, r.CredentialService, r.UserProducer)
 }
 
 // ResendVerificationEmail is the resolver for the ResendVerificationEmail field.

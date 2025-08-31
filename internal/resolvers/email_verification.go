@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 	"fmt"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/http/handlers/logger"
 	"github.com/weeb-vip/auth/http/handlers/requestinfo"
@@ -15,6 +16,7 @@ import (
 func EmailVerification( // nolint
 	ctx context.Context,
 	credentialService credential.Credential,
+	userProducer func(ctx context.Context, message *kafka.Message) error,
 ) (bool, error) {
 	log := logger.FromContext(ctx)
 	req := requestinfo.FromContext(ctx)
@@ -33,6 +35,15 @@ func EmailVerification( // nolint
 		}
 
 		return false, err
+	}
+
+	err = userProducer(ctx, &kafka.Message{
+		Value: []byte(fmt.Sprintf(`{"user_id": "%s"}`, *userID)),
+	})
+
+	if err != nil {
+		log.Errorf("Failed to produce user activated event: %v", err)
+		return true, err
 	}
 
 	return true, nil

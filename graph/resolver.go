@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"context"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/internal/jwt"
 	"github.com/weeb-vip/auth/internal/services/credential"
@@ -24,4 +26,5 @@ type Resolver struct {
 	RefreshTokenService  refresh_token.RefreshToken
 	ValidationToken      validation_token.ValidationToken
 	MailService          mail.MailService
+	UserProducer         func(ctx context.Context, message *kafka.Message) error
 }

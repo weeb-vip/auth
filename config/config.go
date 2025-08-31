@@ -15,6 +15,7 @@ type Config struct {
 	RefreshTokenConfig RefreshTokenConfig
 	UserClient         UserClientConfig
 	EmailConfig        EmailConfig
+	KafkaConfig        KafkaConfig
 }
 
 type AppConfig struct {
@@ -54,6 +55,13 @@ type EmailConfig struct {
 	Host      string `env:"CONFIG__EMAIL_HOST" required:"true"`
 	Port      int    `env:"CONFIG__EMAIL_PORT" required:"true"`
 	SSLType   string `env:"CONFIG__EMAIL_SSL_TYPE" required:"true"`
+}
+
+type KafkaConfig struct {
+	ConsumerGroupName string `default:"auth-group" env:"KAFKA_CONSUMER_GROUP_NAME"`
+	BootstrapServers  string `default:"localhost:9092" env:"KAFKA_BOOTSTRAP_SERVERS"`
+	Offset            string `default:"earliest" env:"KAFKA_OFFSET"`
+	ProducerTopic     string `default:"user_created" env:"KAFKA_PRODUCER_TOPIC"`
 }
 
 func LoadConfig() (*Config, error) {

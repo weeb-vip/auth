@@ -4,14 +4,18 @@ import (
 	"context"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/ThatCatDev/ep/v2/drivers"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/weeb-vip/auth/internal/services/mail"
 	"github.com/weeb-vip/auth/internal/services/mjml"
+	"go.uber.org/zap"
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
 	"github.com/sirupsen/logrus"
 
+	epKafka "github.com/ThatCatDev/ep/v2/drivers/kafka"
 	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/graph"
 	"github.com/weeb-vip/auth/graph/generated"
@@ -19,6 +23,7 @@ import (
 	"github.com/weeb-vip/auth/http/handlers/metrics"
 	"github.com/weeb-vip/auth/http/handlers/requestinfo"
 	"github.com/weeb-vip/auth/internal/jwt"
+	logger2 "github.com/weeb-vip/auth/internal/logger"
 	"github.com/weeb-vip/auth/internal/measurements"
 	"github.com/weeb-vip/auth/internal/services/credential"
 	"github.com/weeb-vip/auth/internal/services/passwordreset"
@@ -29,11 +34,35 @@ import (
 
 func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 	logrus.SetFormatter(&logrus.TextFormatter{})
+	log := logger2.Get()
 
 	conf, err := config.LoadConfig()
 	if err != nil {
 		panic(err)
 	}
+
+	kafkaConfig := &epKafka.KafkaConfig{
+		ConsumerGroupName:        conf.KafkaConfig.ConsumerGroupName,
+		BootstrapServers:         conf.KafkaConfig.BootstrapServers,
+		SaslMechanism:            nil,
+		SecurityProtocol:         nil,
+		Username:                 nil,
+		Password:                 nil,
+		ConsumerSessionTimeoutMs: nil,
+		ConsumerAutoOffsetReset:  &conf.KafkaConfig.Offset,
+		ClientID:                 nil,
+		Debug:                    nil,
+	}
+
+	driver := epKafka.NewKafkaDriver(kafkaConfig)
+	defer func(driver drivers.Driver[*kafka.Message]) {
+		err := driver.Close()
+		if err != nil {
+			log.Error("Error closing Kafka driver", zap.String("error", err.Error()))
+		} else {
+			log.Info("Kafka driver closed successfully")
+		}
+	}(driver)
 
 	authenticationService := credential.NewCredentialService()
 	passwordResetService := passwordreset.NewPasswordResetService()
@@ -51,6 +80,7 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 		RefreshTokenService:  refreshTokenService,
 		ValidationToken:      validationTokenService,
 		MailService:          mailService,
+		UserProducer:         kafkaProducer(context.Background(), driver, conf.KafkaConfig.ProducerTopic),
 	}
 	cfg := generated.Config{Resolvers: resolvers}
 	cfg.Directives.Authenticated = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
@@ -69,4 +99,16 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 	client := measurements.New()
 
 	return requestinfo.Handler()(logger.Handler()(metrics.Handler(client)(srv)))
+}
+
+func kafkaProducer(ctx context.Context, driver drivers.Driver[*kafka.Message], topic string) func(ctx context.Context, message *kafka.Message) error {
+	return func(ctx context.Context, message *kafka.Message) error {
+		log := logger2.FromCtx(ctx)
+		log.Info("Producing message to Kafka", zap.String("topic", topic), zap.String("key", string(message.Key)), zap.String("value", string(message.Value)))
+		if err := driver.Produce(ctx, topic, message); err != nil {
+			log.Error("Failed to produce message", zap.String("topic", topic), zap.Error(err))
+			return err
+		}
+		return nil
+	}
 }
