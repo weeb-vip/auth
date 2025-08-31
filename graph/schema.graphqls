@@ -12,4 +12,5 @@ type Mutation {
     RequestPasswordReset(input: RequestPasswordResetInput!): Boolean!
     ResetPassword(input: ResetPasswordInput!): Boolean!
     RefreshToken(token: String!): SigninResult!
+    VerifyEmail(token: String!): Boolean!
 }

@@ -1,8 +1,9 @@
 package credential
 
 const (
-	CredentialErrorInternalError      ErrorCode = "INTERNAL_ERROR"      // nolint
-	CredentialErrorInvalidCredentials ErrorCode = "INVALID_CREDENTIALS" // nolint
+	CredentialErrorInternalError       ErrorCode = "INTERNAL_ERROR"       // nolint
+	CredentialErrorInvalidCredentials  ErrorCode = "INVALID_CREDENTIALS"  // nolint
+	CredentialErrorInactiveCredentials ErrorCode = "INACTIVE_CREDENTIALS" // nolint
 )
 
 type ErrorCode string

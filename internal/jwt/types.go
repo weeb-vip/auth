@@ -19,4 +19,5 @@ type Claims struct {
 
 type Tokenizer interface {
 	Tokenize(claims Claims) (string, error)
+	GetClaims(token string) (*Claims, error)
 }

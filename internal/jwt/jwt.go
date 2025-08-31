@@ -44,8 +44,8 @@ func getDefault(duration *time.Duration, defaultDuration time.Duration) time.Dur
 func buildClaims(srcClaims Claims) jwt.MapClaims {
 	mapClaims := jwt.MapClaims{
 		"nbf": time.Now().Unix(),
-		"iss": "ircforeverservices",
-		"aud": "ircforeverusers",
+		"iss": "weeb-vip",
+		"aud": "weebusers",
 		"iat": time.Now().Unix(),
 	}
 
@@ -66,4 +66,34 @@ func addIfNotNil[T any](claims jwt.MapClaims, value *T, key string) jwt.MapClaim
 	}
 
 	return claims
+}
+
+func (t tokenizer) GetClaims(token string) (*Claims, error) {
+	signingKey := t.signingKey.GetLatest()
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+
+		publicKey := signingKey
+
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(publicKey.Key))
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if !parsedToken.Valid {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+
+	mapClaims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+
+	return &Claims{
+		Subject: mapClaims["sub"].(*string),
+		Purpose: mapClaims["purpose"].(*string),
+	}, nil
 }

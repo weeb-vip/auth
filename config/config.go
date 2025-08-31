@@ -25,6 +25,7 @@ type AppConfig struct {
 	InternalGraphQLURL        string `env:"INTERNAL_GRAPHQL_URL" default:"http://localhost:5001/graphql"`
 	JWTValiditySeconds        int    `env:"CONFIG__APP_CONFIG__JWT_VALIDITY_SECONDS" default:"900"` // 15 minutes.
 	PasswordResetBaseURL      string `env:"CONFIG__APP_CONFIG__PASSWORD_RESET_BASE_URL" default:"http://localhost:3000/auth/password-reset"`
+	VerificationBaseURL       string `env:"CONFIG__APP_CONFIG__VERIFICATION_BASE_URL" default:"http://localhost:3000/auth/verify"`
 }
 
 type DBConfig struct {

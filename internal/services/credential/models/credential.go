@@ -15,4 +15,5 @@ type Credential struct {
 	UserID   string          `column:"user_id"`
 	Value    string          `json:"password"`
 	Type     CredentialTypes `json:"type"`
+	Active   bool            `json:"active" default:"true"`
 }

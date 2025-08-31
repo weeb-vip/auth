@@ -80,6 +80,13 @@ func (service *credentialService) SignIn( //nolint
 		}
 	}
 
+	if !credentials.Active {
+		return nil, &Error{
+			Code:    CredentialErrorInactiveCredentials,
+			Message: "credentials are not active",
+		}
+	}
+
 	if service.VerifyPassword(password, credentials.Value) {
 		return credentials, nil
 	}
@@ -104,6 +111,18 @@ func (service *credentialService) UpdatePassword(
 	}
 
 	err = service.credentialsRepository.UpdatePassword(username, hashedPassword)
+	if err != nil {
+		return &Error{
+			Code:    CredentialErrorInternalError,
+			Message: err.Error(),
+		}
+	}
+
+	return nil
+}
+
+func (service *credentialService) ActivateCredentials(ctx context.Context, identifier string) error {
+	err := service.credentialsRepository.ActivateCredentials(identifier)
 	if err != nil {
 		return &Error{
 			Code:    CredentialErrorInternalError,

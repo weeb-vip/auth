@@ -19,6 +19,7 @@ type CredentialsRepository interface {
 	GetCredentials(username string) (*models.Credential, error)
 	DeleteCredentials(username string) error
 	UpdatePassword(username string, hashedPassword string) error
+	ActivateCredentials(id string) error
 }
 
 type credentialsRepository struct {
@@ -91,4 +92,12 @@ func GetCredentialsRepository() CredentialsRepository {
 	}
 
 	return credentialsRepositorySingleton
+}
+
+func (repository *credentialsRepository) ActivateCredentials(id string) error {
+	database := repository.DBService.GetDB()
+
+	return database.Model(&models.Credential{}).
+		Where("id = ?", id).
+		Update("active", true).Error
 }

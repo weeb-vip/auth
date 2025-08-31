@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-
 	"github.com/weeb-vip/auth/graph/generated"
 	"github.com/weeb-vip/auth/graph/model"
 	"github.com/weeb-vip/auth/internal/resolvers"
@@ -14,7 +13,7 @@ import (
 
 // Register is the resolver for the Register field.
 func (r *mutationResolver) Register(ctx context.Context, input model.RegisterInput) (*model.RegisterResult, error) {
-	return resolvers.Register(ctx, r.CredentialService, r.ValidationToken, input.Username, input.Password)
+	return resolvers.Register(ctx, &r.Config, r.CredentialService, r.ValidationToken, r.MailService, input.Username, input.Password)
 }
 
 // CreateSession is the resolver for the CreateSession field.
@@ -35,6 +34,11 @@ func (r *mutationResolver) ResetPassword(ctx context.Context, input model.ResetP
 // RefreshToken is the resolver for the RefreshToken field.
 func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*model.SigninResult, error) {
 	return resolvers.RefreshToken(ctx, r.SessionService, r.RefreshTokenService, r.JwtTokenizer, token)
+}
+
+// VerifyEmail is the resolver for the VerifyEmail field.
+func (r *mutationResolver) VerifyEmail(ctx context.Context, token string) (bool, error) {
+	return resolvers.EmailVerification(ctx, r.ValidationToken, r.CredentialService, token)
 }
 
 // AvailabilityByUsername is the resolver for the availabilityByUsername field.

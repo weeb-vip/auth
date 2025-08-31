@@ -1,6 +1,9 @@
 package validation_token // nolint
 
-import "github.com/weeb-vip/auth/internal/jwt"
+import (
+	"fmt"
+	"github.com/weeb-vip/auth/internal/jwt"
+)
 
 type validationToken struct {
 	Tokenizer jwt.Tokenizer
@@ -20,4 +23,19 @@ func (v validationToken) GenerateToken(identifier string) (string, error) {
 		TTL:     nil,
 		Purpose: &purpose,
 	})
+}
+
+func (v validationToken) ValidateToken(token string) (*string, error) {
+	// get claims from token
+	claims, err := v.Tokenizer.GetClaims(token)
+	if err != nil {
+		return nil, err
+	}
+
+	if claims.Purpose == nil || *claims.Purpose != "EMAIL_VERIFICATION" {
+		return nil, fmt.Errorf("invalid token purpose")
+	}
+
+	return claims.Subject, nil
+
 }
