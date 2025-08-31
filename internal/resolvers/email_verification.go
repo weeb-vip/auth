@@ -54,7 +54,7 @@ func EmailVerification( // nolint
 	}
 
 	userCreatedEvent := UserCreatedEvent{
-		UserID: *userID,
+		UserID: credentials.UserID,
 		Email:  credentials.Username,
 	}
 
