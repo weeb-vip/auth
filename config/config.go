@@ -24,6 +24,7 @@ type AppConfig struct {
 	KeyRollingDurationInHours int    `env:"CONFIG__APP_CONFIG__KEY_ROLLING_DURATION_IN_HOURS" default:"1"`
 	InternalGraphQLURL        string `env:"INTERNAL_GRAPHQL_URL" default:"http://localhost:5001/graphql"`
 	JWTValiditySeconds        int    `env:"CONFIG__APP_CONFIG__JWT_VALIDITY_SECONDS" default:"900"` // 15 minutes.
+	PasswordResetBaseURL      string `env:"CONFIG__APP_CONFIG__PASSWORD_RESET_BASE_URL" default:"http://localhost:3000/auth/password-reset"`
 }
 
 type DBConfig struct {

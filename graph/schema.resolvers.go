@@ -24,7 +24,7 @@ func (r *mutationResolver) CreateSession(ctx context.Context, input *model.Login
 
 // RequestPasswordReset is the resolver for the RequestPasswordReset field.
 func (r *mutationResolver) RequestPasswordReset(ctx context.Context, input model.RequestPasswordResetInput) (bool, error) {
-	return resolvers.RequestPasswordReset(ctx, r.CredentialService, r.PasswordResetService, r.MailService, input.Username, input.Email)
+	return resolvers.RequestPasswordReset(ctx, r.CredentialService, r.PasswordResetService, r.MailService, &r.Config, input.Username, input.Email)
 }
 
 // ResetPassword is the resolver for the ResetPassword field.

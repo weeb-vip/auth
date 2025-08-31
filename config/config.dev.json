@@ -8,7 +8,8 @@
     "ssl": "false"
   },
   "AppConfig": {
-    "KeyRollingDurationInHours": 1
+    "KeyRollingDurationInHours": 1,
+    "PasswordResetBaseURL": "http://localhost:8083/auth/password-reset"
   },
   "snsconfig": {
     "forgotpasswordtopic": "forgotpassword",

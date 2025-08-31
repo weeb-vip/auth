@@ -6,6 +6,9 @@
     "db": "auth",
     "port": "5432"
   },
+  "AppConfig": {
+    "PasswordResetBaseURL": "https://your-domain.com/auth/password-reset"
+  },
   "snsconfig": {
     "forgotpasswordtopic": "forgotpassword",
     "refreshtokenexpiredtopic": "refreshtokenexpired",
