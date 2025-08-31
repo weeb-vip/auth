@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+
 	"github.com/weeb-vip/auth/graph/generated"
 	"github.com/weeb-vip/auth/graph/model"
 	"github.com/weeb-vip/auth/internal/resolvers"
@@ -37,8 +38,13 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*mod
 }
 
 // VerifyEmail is the resolver for the VerifyEmail field.
-func (r *mutationResolver) VerifyEmail(ctx context.Context, token string) (bool, error) {
-	return resolvers.EmailVerification(ctx, r.ValidationToken, r.CredentialService, token)
+func (r *mutationResolver) VerifyEmail(ctx context.Context) (bool, error) {
+	return resolvers.EmailVerification(ctx, r.CredentialService)
+}
+
+// ResendVerificationEmail is the resolver for the ResendVerificationEmail field.
+func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, username string) (bool, error) {
+	return resolvers.ResendVerificationEmail(ctx, r.CredentialService, r.ValidationToken, r.MailService, &r.Config, username)
 }
 
 // AvailabilityByUsername is the resolver for the availabilityByUsername field.

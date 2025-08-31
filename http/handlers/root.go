@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/weeb-vip/auth/internal/services/mail"
 	"github.com/weeb-vip/auth/internal/services/mjml"
 	"net/http"
@@ -50,6 +53,16 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 		MailService:          mailService,
 	}
 	cfg := generated.Config{Resolvers: resolvers}
+	cfg.Directives.Authenticated = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
+		req := requestinfo.FromContext(ctx)
+
+		if req.UserID == nil {
+			// unauthorized
+			return nil, fmt.Errorf("Access denied")
+		}
+
+		return next(ctx)
+	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(cfg))
 	srv.Use(apollotracing.Tracer{})
 
