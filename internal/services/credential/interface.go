@@ -12,4 +12,5 @@ type Credential interface {
 	GetCredentials(ctx context.Context, username string) (*models.Credential, error)
 	UpdatePassword(ctx context.Context, username string, newPassword string) error
 	ActivateCredentials(ctx context.Context, identifier string) error
+	GetCredentialsByIdentifier(ctx context.Context, identifier string) (*models.Credential, error)
 }

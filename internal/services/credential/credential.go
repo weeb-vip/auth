@@ -132,3 +132,15 @@ func (service *credentialService) ActivateCredentials(ctx context.Context, ident
 
 	return nil
 }
+
+func (service *credentialService) GetCredentialsByIdentifier(ctx context.Context, identifier string) (*models.Credential, error) {
+	credentials, err := service.credentialsRepository.GetCredentialsByIdentifier(identifier)
+	if err != nil {
+		return nil, &Error{
+			Code:    CredentialErrorInternalError,
+			Message: err.Error(),
+		}
+	}
+
+	return credentials, nil
+}

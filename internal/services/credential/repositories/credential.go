@@ -20,6 +20,7 @@ type CredentialsRepository interface {
 	DeleteCredentials(username string) error
 	UpdatePassword(username string, hashedPassword string) error
 	ActivateCredentials(id string) error
+	GetCredentialsByIdentifier(identifier string) (*models.Credential, error)
 }
 
 type credentialsRepository struct {
@@ -100,4 +101,17 @@ func (repository *credentialsRepository) ActivateCredentials(id string) error {
 	return database.Model(&models.Credential{}).
 		Where("id = ?", id).
 		Update("active", true).Error
+}
+
+func (repository *credentialsRepository) GetCredentialsByIdentifier(identifier string) (*models.Credential, error) {
+	database := repository.DBService.GetDB()
+
+	var credentials models.Credential
+
+	err := database.Where("id = ?", identifier).First(&credentials).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	return &credentials, nil
 }

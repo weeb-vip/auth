@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/weeb-vip/auth/config"
@@ -12,6 +13,11 @@ import (
 	"github.com/weeb-vip/auth/internal/services/validation_token"
 	"net/url"
 )
+
+type UserCreatedEvent struct {
+	UserID string `json:"user_id"`
+	Email  string `json:"email"`
+}
 
 func EmailVerification( // nolint
 	ctx context.Context,
@@ -37,8 +43,25 @@ func EmailVerification( // nolint
 		return false, err
 	}
 
+	credential, err := credentialService.GetCredentials(ctx, *userID)
+	if err != nil {
+		res, err := handleError(ctx, "false", err)
+		if res != nil {
+			return false, err
+		}
+
+		return false, err
+	}
+
+	userCreatedEvent := UserCreatedEvent{
+		UserID: *userID,
+		Email:  credential.Username,
+	}
+
+	payloadBytes, err := json.Marshal(userCreatedEvent)
+
 	err = userProducer(ctx, &kafka.Message{
-		Value: []byte(fmt.Sprintf(`{"user_id": "%s"}`, *userID)),
+		Value: payloadBytes,
 	})
 
 	if err != nil {
