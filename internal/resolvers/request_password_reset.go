@@ -34,10 +34,10 @@ func RequestPasswordReset(
 	if err != nil {
 		return false, fmt.Errorf("invalid password reset base URL: %w", err)
 	}
-	
+
 	query := resetURL.Query()
 	query.Set("token", reset.OTT)
-	query.Set("username", username)
+	query.Set("email", email)
 	resetURL.RawQuery = query.Encode()
 
 	err = mailService.SendMail(ctx, []string{email}, "Password Reset", "reset-password.mjml", map[string]string{
