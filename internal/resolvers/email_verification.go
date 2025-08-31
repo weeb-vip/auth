@@ -43,7 +43,7 @@ func EmailVerification( // nolint
 		return false, err
 	}
 
-	credential, err := credentialService.GetCredentials(ctx, *userID)
+	credentials, err := credentialService.GetCredentials(ctx, *userID)
 	if err != nil {
 		res, err := handleError(ctx, "false", err)
 		if res != nil {
@@ -55,7 +55,7 @@ func EmailVerification( // nolint
 
 	userCreatedEvent := UserCreatedEvent{
 		UserID: *userID,
-		Email:  credential.Username,
+		Email:  credentials.Username,
 	}
 
 	payloadBytes, err := json.Marshal(userCreatedEvent)
