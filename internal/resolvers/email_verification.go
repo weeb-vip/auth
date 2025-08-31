@@ -43,7 +43,7 @@ func EmailVerification( // nolint
 		return false, err
 	}
 
-	credentials, err := credentialService.GetCredentials(ctx, *userID)
+	credentials, err := credentialService.GetCredentialsByIdentifier(ctx, *userID)
 	if err != nil {
 		res, err := handleError(ctx, "false", err)
 		if res != nil {
