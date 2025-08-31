@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y \
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 
+RUN make generate
+
 # Update dependencies after copying source
 RUN go mod tidy
 
