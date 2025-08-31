@@ -48,7 +48,7 @@ func Register( // nolint
 	query.Set("email", username)
 	resetURL.RawQuery = query.Encode()
 
-	err = mailService.SendMail(ctx, []string{username}, "Password Reset", "verification.mjml", map[string]string{
+	err = mailService.SendMail(ctx, []string{username}, "Email Verification", "verification.mjml", map[string]string{
 		"token_url": resetURL.String(),
 		"name":      username,
 	})
