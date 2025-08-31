@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+
 	"github.com/weeb-vip/auth/graph/generated"
 	"github.com/weeb-vip/auth/graph/model"
 	"github.com/weeb-vip/auth/internal/resolvers"
