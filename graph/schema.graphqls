@@ -10,5 +10,6 @@ type Mutation {
     Register(input: RegisterInput!): RegisterResult!
     CreateSession(input: LoginInput): SigninResult
     RequestPasswordReset(input: RequestPasswordResetInput!): Boolean!
+    ResetPassword(input: ResetPasswordInput!): Boolean!
     RefreshToken(token: String!): SigninResult!
 }

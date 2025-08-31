@@ -89,3 +89,27 @@ func (service *credentialService) SignIn( //nolint
 		Message: "invalid credentials",
 	}
 }
+
+func (service *credentialService) UpdatePassword(
+	ctx context.Context,
+	username string,
+	newPassword string,
+) error {
+	hashedPassword, err := service.HashPassword(newPassword)
+	if err != nil {
+		return &Error{
+			Code:    CredentialErrorInternalError,
+			Message: err.Error(),
+		}
+	}
+
+	err = service.credentialsRepository.UpdatePassword(username, hashedPassword)
+	if err != nil {
+		return &Error{
+			Code:    CredentialErrorInternalError,
+			Message: err.Error(),
+		}
+	}
+
+	return nil
+}

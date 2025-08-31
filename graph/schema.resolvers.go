@@ -27,6 +27,11 @@ func (r *mutationResolver) RequestPasswordReset(ctx context.Context, input model
 	return resolvers.RequestPasswordReset(ctx, r.CredentialService, r.PasswordResetService, r.MailService, input.Username, input.Email)
 }
 
+// ResetPassword is the resolver for the ResetPassword field.
+func (r *mutationResolver) ResetPassword(ctx context.Context, input model.ResetPasswordInput) (bool, error) {
+	return resolvers.ResetPassword(ctx, r.CredentialService, r.PasswordResetService, input.Token, input.Username, input.NewPassword)
+}
+
 // RefreshToken is the resolver for the RefreshToken field.
 func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*model.SigninResult, error) {
 	return resolvers.RefreshToken(ctx, r.SessionService, r.RefreshTokenService, r.JwtTokenizer, token)

@@ -18,6 +18,7 @@ type CredentialsRepository interface {
 	) (*models.Credential, error)
 	GetCredentials(username string) (*models.Credential, error)
 	DeleteCredentials(username string) error
+	UpdatePassword(username string, hashedPassword string) error
 }
 
 type credentialsRepository struct {
@@ -74,6 +75,14 @@ func (repository *credentialsRepository) DeleteCredentials(username string) erro
 	database := repository.DBService.GetDB()
 
 	return database.Where("username = ?", username).Delete(&models.Credential{}).Error
+}
+
+func (repository *credentialsRepository) UpdatePassword(username string, hashedPassword string) error {
+	database := repository.DBService.GetDB()
+
+	return database.Model(&models.Credential{}).
+		Where("username = ?", username).
+		Update("value", hashedPassword).Error
 }
 
 func GetCredentialsRepository() CredentialsRepository {

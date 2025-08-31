@@ -2,6 +2,7 @@ package passwordreset
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 
@@ -28,4 +29,26 @@ func (service *passwordResetService) PasswordResetRequest(
 	ott := uuid.New().String()
 
 	return service.passwordResetRepository.AddOTT(credentialID, ott)
+}
+
+func (service *passwordResetService) ValidateAndConsumeToken(
+	ctx context.Context,
+	username string,
+	token string,
+) error {
+	passwordReset, err := service.passwordResetRepository.GetOTTByToken(token)
+	if err != nil {
+		return err
+	}
+
+	if passwordReset.OTT == "" {
+		return errors.New("invalid token")
+	}
+
+	err = service.passwordResetRepository.DeleteOTTByToken(token)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

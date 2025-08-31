@@ -54,3 +54,9 @@ input RequestPasswordResetInput {
     username: String!
     email: String!
 }
+
+input ResetPasswordInput {
+    token: String!
+    username: String!
+    newPassword: String!
+}

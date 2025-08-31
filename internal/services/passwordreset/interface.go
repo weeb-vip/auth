@@ -8,4 +8,5 @@ import (
 
 type PasswordReset interface {
 	PasswordResetRequest(ctx context.Context, credentialID string) (*models.PasswordReset, error)
+	ValidateAndConsumeToken(ctx context.Context, username string, token string) error
 }

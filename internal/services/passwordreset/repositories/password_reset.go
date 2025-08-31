@@ -14,6 +14,8 @@ type PasswordResetRepository interface {
 	AddOTT(credentialID string, ott string) (*models.PasswordReset, error)
 	DeleteOTT(credentialID string) error
 	GetOTT(credentialID string) (*models.PasswordReset, error)
+	GetOTTByToken(ott string) (*models.PasswordReset, error)
+	DeleteOTTByToken(ott string) error
 }
 
 type passwordResetRepository struct {
@@ -71,6 +73,26 @@ func (repository *passwordResetRepository) GetOTT(credentialID string) (*models.
 	}
 
 	return &passwordReset, nil
+}
+
+func (repository *passwordResetRepository) GetOTTByToken(ott string) (*models.PasswordReset, error) {
+	db := repository.DBService.GetDB()
+
+	var passwordReset models.PasswordReset
+
+	err := db.Where("ott = ?", ott).First(&passwordReset).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &passwordReset, nil
+}
+
+func (repository *passwordResetRepository) DeleteOTTByToken(ott string) error {
+	db := repository.DBService.GetDB()
+
+	return db.Where("ott = ?", ott).Delete(&models.PasswordReset{}).Error
 }
 
 func GetPasswordResetRepository() PasswordResetRepository {
