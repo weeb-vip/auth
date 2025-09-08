@@ -50,7 +50,7 @@ type UserClientConfig struct {
 type EmailConfig struct {
 	FromEmail string `env:"CONFIG__EMAIL_FROM_EMAIL" required:"true"`
 	FromName  string `env:"CONFIG__EMAIL_FROM_NAME" required:"true"`
-	Username  string `env:"CONFIG__EMAIL_USERNAME" required:"true"`
+	Username  string `env:"CONFIG__EMAIL_USERNAME" required:"false"`
 	Password  string `env:"CONFIG__EMAIL_PASSWORD" required:"false"`
 	Host      string `env:"CONFIG__EMAIL_HOST" required:"true"`
 	Port      int    `env:"CONFIG__EMAIL_PORT" required:"true"`
