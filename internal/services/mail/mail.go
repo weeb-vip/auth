@@ -23,8 +23,38 @@ type mailService struct {
 
 // NewMailService creates a new instance of MailService
 func NewMailService(cfg config.EmailConfig, mjmlService mjml.MJMLService) MailService {
+	var client *mail.Client
+	var err error
 
-	client, err := mail.NewClient(cfg.Host, mail.WithPort(cfg.Port), mail.WithSMTPAuth(mail.SMTPAuthPlain), mail.WithUsername(cfg.Username), mail.WithPassword(cfg.Password))
+	// Configure client based on SSL type and authentication requirements
+	if cfg.SSLType == "none" {
+		// For MailHog or other development SMTP servers without SSL/TLS
+		if cfg.Username == "" && cfg.Password == "" {
+			// No authentication required (e.g., MailHog)
+			client, err = mail.NewClient(cfg.Host, 
+				mail.WithPort(cfg.Port),
+				mail.WithTLSPolicy(mail.NoTLS),
+			)
+		} else {
+			// Plain authentication without TLS
+			client, err = mail.NewClient(cfg.Host,
+				mail.WithPort(cfg.Port),
+				mail.WithSMTPAuth(mail.SMTPAuthPlain),
+				mail.WithUsername(cfg.Username),
+				mail.WithPassword(cfg.Password),
+				mail.WithTLSPolicy(mail.NoTLS),
+			)
+		}
+	} else {
+		// Standard configuration with TLS/SSL
+		client, err = mail.NewClient(cfg.Host,
+			mail.WithPort(cfg.Port),
+			mail.WithSMTPAuth(mail.SMTPAuthPlain),
+			mail.WithUsername(cfg.Username),
+			mail.WithPassword(cfg.Password),
+		)
+	}
+
 	if err != nil {
 		panic(fmt.Errorf("failed to create mail client: %w", err))
 	}

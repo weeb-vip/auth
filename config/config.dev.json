@@ -19,5 +19,14 @@
   },
   "userClient": {
     "url": "http://localhost:8080"
+  },
+  "emailconfig": {
+    "fromemail": "noreply@localhost",
+    "fromname": "Auth Service",
+    "username": "",
+    "password": "",
+    "host": "127.0.0.1",
+    "port": 1025,
+    "ssltype": "none"
   }
 }

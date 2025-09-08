@@ -14,5 +14,14 @@
     "refreshtokenexpiredtopic": "refreshtokenexpired",
     "registrationcompletetopic": "registrationcomplete",
     "userloggedintopic": "userloggedin"
+  },
+  "emailconfig": {
+    "fromemail": "noreply@localhost",
+    "fromname": "Auth Service",
+    "username": "",
+    "password": "",
+    "host": "mailhog",
+    "port": 1025,
+    "ssltype": "none"
   }
 }
