@@ -33,7 +33,7 @@ type DBConfig struct {
 	Host               string `env:"DBHOST" required:"true" default:"localhost"`
 	Port               uint   `env:"DBPORT" required:"true" default:"5432"`
 	User               string `env:"DBUSER" required:"true" default:"postgres"`
-	Password           string `env:"DBPASSWORD" required:"false" default:"mysecretpassword"`
+	Password           string `env:"DBPASSWORD" required:"true" default:"mysecretpassword"`
 	DB                 string `env:"DBNAME" required:"true" default:"auth"`
 	SSL                string `env:"DBSSL" default:"false"`
 	MigrationTableName string `env:"DBMIGRATIONTABLE" default:"__migrations_auth"`
@@ -51,7 +51,7 @@ type EmailConfig struct {
 	FromEmail string `env:"CONFIG__EMAIL_FROM_EMAIL" required:"true"`
 	FromName  string `env:"CONFIG__EMAIL_FROM_NAME" required:"true"`
 	Username  string `env:"CONFIG__EMAIL_USERNAME" required:"true"`
-	Password  string `env:"CONFIG__EMAIL_PASSWORD" required:"true"`
+	Password  string `env:"CONFIG__EMAIL_PASSWORD" required:"false"`
 	Host      string `env:"CONFIG__EMAIL_HOST" required:"true"`
 	Port      int    `env:"CONFIG__EMAIL_PORT" required:"true"`
 	SSLType   string `env:"CONFIG__EMAIL_SSL_TYPE" required:"true"`
