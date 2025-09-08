@@ -33,7 +33,7 @@ type DBConfig struct {
 	Host               string `env:"DBHOST" required:"true" default:"localhost"`
 	Port               uint   `env:"DBPORT" required:"true" default:"5432"`
 	User               string `env:"DBUSER" required:"true" default:"postgres"`
-	Password           string `env:"DBPASSWORD" required:"true" default:"mysecretpassword"`
+	Password           string `env:"DBPASSWORD" required:"false" default:"mysecretpassword"`
 	DB                 string `env:"DBNAME" required:"true" default:"auth"`
 	SSL                string `env:"DBSSL" default:"false"`
 	MigrationTableName string `env:"DBMIGRATIONTABLE" default:"__migrations_auth"`
