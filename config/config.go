@@ -27,6 +27,7 @@ type AppConfig struct {
 	JWTValiditySeconds        int    `env:"CONFIG__APP_CONFIG__JWT_VALIDITY_SECONDS" default:"900"` // 15 minutes.
 	PasswordResetBaseURL      string `env:"CONFIG__APP_CONFIG__PASSWORD_RESET_BASE_URL" default:"http://localhost:3000/auth/password-reset"`
 	VerificationBaseURL       string `env:"CONFIG__APP_CONFIG__VERIFICATION_BASE_URL" default:"http://localhost:3000/auth/verify"`
+	CookieDomain              string `env:"CONFIG__APP_CONFIG__COOKIE_DOMAIN" default:".weeb.vip"`
 }
 
 type DBConfig struct {

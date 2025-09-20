@@ -37,8 +37,8 @@ extend type User @key(fields: "id") {
 }
 
 type Credentials {
-    token: String!
-    refresh_token: String!
+    token: String
+    refresh_token: String
 }
 
 type SigninResult {

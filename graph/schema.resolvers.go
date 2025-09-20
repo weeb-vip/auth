@@ -19,7 +19,7 @@ func (r *mutationResolver) Register(ctx context.Context, input model.RegisterInp
 
 // CreateSession is the resolver for the CreateSession field.
 func (r *mutationResolver) CreateSession(ctx context.Context, input *model.LoginInput) (*model.SigninResult, error) {
-	return resolvers.CreateSession(ctx, r.CredentialService, r.SessionService, r.RefreshTokenService, r.JwtTokenizer, input)
+	return resolvers.CreateSession(ctx, r.CredentialService, r.SessionService, r.RefreshTokenService, r.JwtTokenizer, &r.Config, input)
 }
 
 // RequestPasswordReset is the resolver for the RequestPasswordReset field.
@@ -34,7 +34,7 @@ func (r *mutationResolver) ResetPassword(ctx context.Context, input model.ResetP
 
 // RefreshToken is the resolver for the RefreshToken field.
 func (r *mutationResolver) RefreshToken(ctx context.Context, token string) (*model.SigninResult, error) {
-	return resolvers.RefreshToken(ctx, r.SessionService, r.RefreshTokenService, r.JwtTokenizer, token)
+	return resolvers.RefreshToken(ctx, r.SessionService, r.RefreshTokenService, r.JwtTokenizer, &r.Config, token)
 }
 
 // VerifyEmail is the resolver for the VerifyEmail field.

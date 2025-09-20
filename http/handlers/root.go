@@ -22,6 +22,7 @@ import (
 	"github.com/weeb-vip/auth/http/handlers/logger"
 	"github.com/weeb-vip/auth/http/handlers/metrics"
 	"github.com/weeb-vip/auth/http/handlers/requestinfo"
+	"github.com/weeb-vip/auth/http/handlers/responsecontext"
 	"github.com/weeb-vip/auth/internal/jwt"
 	logger2 "github.com/weeb-vip/auth/internal/logger"
 	"github.com/weeb-vip/auth/internal/measurements"
@@ -98,7 +99,15 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 
 	client := measurements.New()
 
-	return requestinfo.Handler()(logger.Handler()(metrics.Handler(client)(srv)))
+	// Create response context middleware
+	responseContextHandler := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := responsecontext.WithResponseWriter(r.Context(), w)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+
+	return requestinfo.Handler()(logger.Handler()(metrics.Handler(client)(responseContextHandler(srv))))
 }
 
 func kafkaProducer(ctx context.Context, driver drivers.Driver[*kafka.Message], topic string) func(ctx context.Context, message *kafka.Message) error {

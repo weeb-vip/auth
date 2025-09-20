@@ -2,8 +2,12 @@ package resolvers
 
 import (
 	"context"
+	"net/http"
+	"time"
 
+	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/graph/model"
+	"github.com/weeb-vip/auth/http/handlers/responsecontext"
 	"github.com/weeb-vip/auth/internal/jwt"
 	"github.com/weeb-vip/auth/internal/services/refresh_token"
 
@@ -19,6 +23,7 @@ func CreateSession( // nolint
 	sessionService session.Session,
 	refreshTokenService refresh_token.RefreshToken,
 	jwtTokenizer jwt.Tokenizer,
+	config *config.Config,
 	input *model.LoginInput,
 ) (*model.SigninResult, error) {
 	createdSession, err := createSession(ctx, input, sessionService, credentialService)
@@ -47,11 +52,39 @@ func CreateSession( // nolint
 		return nil, err
 	}
 
+	// Set access token as HTTP-only cookie
+	responseWriter := responsecontext.FromContext(ctx)
+
+	accessTokenCookie := &http.Cookie{
+		Name:     "access_token",
+		Value:    token,
+		Path:     "/",
+		Domain:   config.APPConfig.CookieDomain,
+		HttpOnly: true,
+		Secure:   false, // Allow non-HTTPS for development
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   int(time.Hour.Seconds()), // 1 hour
+	}
+
+	refreshTokenCookie := &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken.Token,
+		Path:     "/",
+		Domain:   config.APPConfig.CookieDomain,
+		HttpOnly: true,
+		Secure:   false, // Allow non-HTTPS for development
+		SameSite: http.SameSiteNoneMode,
+		MaxAge:   int((time.Hour * 24 * 7).Seconds()), // 7 days
+	}
+
+	http.SetCookie(responseWriter, accessTokenCookie)
+	http.SetCookie(responseWriter, refreshTokenCookie)
+
 	return &model.SigninResult{
 		ID: createdSession.UserID,
 		Credentials: &model.Credentials{
-			Token:        token,
-			RefreshToken: refreshToken.Token,
+			Token:        &token,
+			RefreshToken: &refreshToken.Token,
 		},
 	}, nil
 }
