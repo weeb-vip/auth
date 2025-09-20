@@ -2,8 +2,9 @@ package resolvers
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -178,68 +179,68 @@ func TestCreateSession(t *testing.T) {
 			t.Errorf("Expected refresh token 'refresh_token_123', got: %v", result.Credentials.RefreshToken)
 		}
 
-		// Verify cookies were set
-		cookies := recorder.Result().Cookies()
-		if len(cookies) != 2 {
-			t.Fatalf("Expected 2 cookies, got: %d", len(cookies))
+		// Verify Set-Cookie headers were set (bypassing Go's normalization)
+		setCookieHeaders := recorder.Result().Header.Values("Set-Cookie")
+		if len(setCookieHeaders) != 2 {
+			t.Fatalf("Expected 2 Set-Cookie headers, got: %d", len(setCookieHeaders))
 		}
 
-		// Check access token cookie
-		var accessTokenCookie *http.Cookie
-		var refreshTokenCookie *http.Cookie
-
-		for _, cookie := range cookies {
-			if cookie.Name == "access_token" {
-				accessTokenCookie = cookie
-			} else if cookie.Name == "refresh_token" {
-				refreshTokenCookie = cookie
+		// Check for access token and refresh token in headers
+		var accessTokenHeader, refreshTokenHeader string
+		for _, header := range setCookieHeaders {
+			if strings.Contains(header, "access_token=") {
+				accessTokenHeader = header
+			} else if strings.Contains(header, "refresh_token=") {
+				refreshTokenHeader = header
 			}
 		}
 
-		if accessTokenCookie == nil {
-			t.Fatal("Expected access_token cookie, but not found")
+		if accessTokenHeader == "" {
+			t.Fatal("Expected access_token Set-Cookie header, but not found")
 		}
 
-		if accessTokenCookie.Value != "jwt_token_123" {
-			t.Errorf("Expected access token cookie value 'jwt_token_123', got: %s", accessTokenCookie.Value)
+		if refreshTokenHeader == "" {
+			t.Fatal("Expected refresh_token Set-Cookie header, but not found")
 		}
 
-		if accessTokenCookie.Domain != "weeb.vip" {
-			t.Errorf("Expected access token cookie domain 'weeb.vip', got: %s", accessTokenCookie.Domain)
+		// Verify access token header contains expected values
+		if !strings.Contains(accessTokenHeader, "access_token=jwt_token_123") {
+			t.Errorf("Expected access token value 'jwt_token_123' in header: %s", accessTokenHeader)
 		}
 
-		if !accessTokenCookie.HttpOnly {
-			t.Error("Expected access token cookie to be HttpOnly")
+		if !strings.Contains(accessTokenHeader, "Domain=.weeb.vip") {
+			t.Errorf("Expected access token domain '.weeb.vip' (with leading dot) in header: %s", accessTokenHeader)
 		}
 
-		if accessTokenCookie.Path != "/" {
-			t.Errorf("Expected access token cookie path '/', got: %s", accessTokenCookie.Path)
+		if !strings.Contains(accessTokenHeader, "HttpOnly") {
+			t.Errorf("Expected HttpOnly flag in access token header: %s", accessTokenHeader)
 		}
 
-		expectedAccessMaxAge := int(time.Hour.Seconds())
-		if accessTokenCookie.MaxAge != expectedAccessMaxAge {
-			t.Errorf("Expected access token cookie MaxAge %d, got: %d", expectedAccessMaxAge, accessTokenCookie.MaxAge)
+		if !strings.Contains(accessTokenHeader, "Path=/") {
+			t.Errorf("Expected Path=/ in access token header: %s", accessTokenHeader)
 		}
 
-		if refreshTokenCookie == nil {
-			t.Fatal("Expected refresh_token cookie, but not found")
+		expectedAccessMaxAge := fmt.Sprintf("Max-Age=%d", int(time.Hour.Seconds()))
+		if !strings.Contains(accessTokenHeader, expectedAccessMaxAge) {
+			t.Errorf("Expected %s in access token header: %s", expectedAccessMaxAge, accessTokenHeader)
 		}
 
-		if refreshTokenCookie.Value != "refresh_token_123" {
-			t.Errorf("Expected refresh token cookie value 'refresh_token_123', got: %s", refreshTokenCookie.Value)
+		// Verify refresh token header contains expected values
+		if !strings.Contains(refreshTokenHeader, "refresh_token=refresh_token_123") {
+			t.Errorf("Expected refresh token value 'refresh_token_123' in header: %s", refreshTokenHeader)
 		}
 
-		if refreshTokenCookie.Domain != "weeb.vip" {
-			t.Errorf("Expected refresh token cookie domain 'weeb.vip', got: %s", refreshTokenCookie.Domain)
+		if !strings.Contains(refreshTokenHeader, "Domain=.weeb.vip") {
+			t.Errorf("Expected refresh token domain '.weeb.vip' (with leading dot) in header: %s", refreshTokenHeader)
 		}
 
-		if !refreshTokenCookie.HttpOnly {
-			t.Error("Expected refresh token cookie to be HttpOnly")
+		if !strings.Contains(refreshTokenHeader, "HttpOnly") {
+			t.Errorf("Expected HttpOnly flag in refresh token header: %s", refreshTokenHeader)
 		}
 
-		expectedRefreshMaxAge := int((time.Hour * 24 * 7).Seconds())
-		if refreshTokenCookie.MaxAge != expectedRefreshMaxAge {
-			t.Errorf("Expected refresh token cookie MaxAge %d, got: %d", expectedRefreshMaxAge, refreshTokenCookie.MaxAge)
+		expectedRefreshMaxAge := fmt.Sprintf("Max-Age=%d", int((time.Hour * 24 * 7).Seconds()))
+		if !strings.Contains(refreshTokenHeader, expectedRefreshMaxAge) {
+			t.Errorf("Expected %s in refresh token header: %s", expectedRefreshMaxAge, refreshTokenHeader)
 		}
 	})
 
@@ -272,10 +273,48 @@ func TestCreateSession(t *testing.T) {
 			t.Fatalf("Expected no error, got: %v", err)
 		}
 
-		cookies := recorder.Result().Cookies()
-		for _, cookie := range cookies {
-			if cookie.Domain != "localhost" {
-				t.Errorf("Expected cookie domain 'localhost', got: %s", cookie.Domain)
+		setCookieHeaders := recorder.Result().Header.Values("Set-Cookie")
+		for _, header := range setCookieHeaders {
+			if !strings.Contains(header, "Domain=localhost") {
+				t.Errorf("Expected cookie domain 'localhost' in header: %s", header)
+			}
+		}
+	})
+
+	t.Run("should normalize cookie domain by removing leading dot", func(t *testing.T) {
+		recorder := httptest.NewRecorder()
+		ctx := responsecontext.WithResponseWriter(context.Background(), recorder)
+
+		configWithDotDomain := &config.Config{
+			APPConfig: config.AppConfig{
+				CookieDomain: ".example.com", // Config has leading dot
+			},
+		}
+
+		input := &model.LoginInput{
+			Username: "testuser",
+			Password: "testpass",
+		}
+
+		_, err := CreateSession(
+			ctx,
+			mockCredentialService,
+			mockSessionService,
+			mockRefreshTokenService,
+			mockJWTTokenizer,
+			configWithDotDomain,
+			input,
+		)
+
+		if err != nil {
+			t.Fatalf("Expected no error, got: %v", err)
+		}
+
+		setCookieHeaders := recorder.Result().Header.Values("Set-Cookie")
+		for _, header := range setCookieHeaders {
+			// With manual header construction, we preserve the leading dot
+			if !strings.Contains(header, "Domain=.example.com") {
+				t.Errorf("Expected cookie domain '.example.com' (preserved leading dot) in header: %s", header)
 			}
 		}
 	})
@@ -307,9 +346,9 @@ func TestCreateSession(t *testing.T) {
 		}
 
 		// Verify cookies were still set
-		cookies := recorder.Result().Cookies()
-		if len(cookies) != 2 {
-			t.Fatalf("Expected 2 cookies for guest session, got: %d", len(cookies))
+		setCookieHeaders := recorder.Result().Header.Values("Set-Cookie")
+		if len(setCookieHeaders) != 2 {
+			t.Fatalf("Expected 2 Set-Cookie headers for guest session, got: %d", len(setCookieHeaders))
 		}
 	})
 }

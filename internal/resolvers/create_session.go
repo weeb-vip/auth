@@ -2,7 +2,7 @@ package resolvers
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 	"time"
 
 	"github.com/weeb-vip/auth/config"
@@ -55,30 +55,25 @@ func CreateSession( // nolint
 	// Set access token as HTTP-only cookie
 	responseWriter := responsecontext.FromContext(ctx)
 
-	accessTokenCookie := &http.Cookie{
-		Name:     "access_token",
-		Value:    token,
-		Path:     "/",
-		Domain:   config.APPConfig.CookieDomain,
-		HttpOnly: true,
-		Secure:   false, // Allow non-HTTPS for development
-		SameSite: http.SameSiteNoneMode,
-		MaxAge:   int(time.Hour.Seconds()), // 1 hour
-	}
+	// Manually construct Set-Cookie headers to preserve leading dot in domain
+	// Go's http.SetCookie normalizes domains by removing leading dots
+	accessTokenCookieStr := fmt.Sprintf(
+		"access_token=%s; Path=/; Domain=%s; Max-Age=%d; HttpOnly; SameSite=None",
+		token,
+		config.APPConfig.CookieDomain, // Preserves leading dot if present
+		int(time.Hour.Seconds()),
+	)
 
-	refreshTokenCookie := &http.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken.Token,
-		Path:     "/",
-		Domain:   config.APPConfig.CookieDomain,
-		HttpOnly: true,
-		Secure:   false, // Allow non-HTTPS for development
-		SameSite: http.SameSiteNoneMode,
-		MaxAge:   int((time.Hour * 24 * 7).Seconds()), // 7 days
-	}
+	refreshTokenCookieStr := fmt.Sprintf(
+		"refresh_token=%s; Path=/; Domain=%s; Max-Age=%d; HttpOnly; SameSite=None",
+		refreshToken.Token,
+		config.APPConfig.CookieDomain, // Preserves leading dot if present
+		int((time.Hour * 24 * 7).Seconds()),
+	)
 
-	http.SetCookie(responseWriter, accessTokenCookie)
-	http.SetCookie(responseWriter, refreshTokenCookie)
+	// Set cookies manually to bypass Go's domain normalization
+	responseWriter.Header().Add("Set-Cookie", accessTokenCookieStr)
+	responseWriter.Header().Add("Set-Cookie", refreshTokenCookieStr)
 
 	return &model.SigninResult{
 		ID: createdSession.UserID,
