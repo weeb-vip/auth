@@ -58,14 +58,14 @@ func CreateSession( // nolint
 	// Manually construct Set-Cookie headers to preserve leading dot in domain
 	// Go's http.SetCookie normalizes domains by removing leading dots
 	accessTokenCookieStr := fmt.Sprintf(
-		"access_token=%s; Path=/; Domain=%s; Max-Age=%d; HttpOnly; SameSite=None",
+		"access_token=%s; Path=/; Domain=%s; Max-Age=%d; HttpOnly; Secure; SameSite=None",
 		token,
 		config.APPConfig.CookieDomain, // Preserves leading dot if present
 		int(time.Hour.Seconds()),
 	)
 
 	refreshTokenCookieStr := fmt.Sprintf(
-		"refresh_token=%s; Path=/; Domain=%s; Max-Age=%d; HttpOnly; SameSite=None",
+		"refresh_token=%s; Path=/; Domain=%s; Max-Age=%d; HttpOnly; Secure; SameSite=None",
 		refreshToken.Token,
 		config.APPConfig.CookieDomain, // Preserves leading dot if present
 		int((time.Hour * 24 * 7).Seconds()),

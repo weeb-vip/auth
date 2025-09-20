@@ -216,6 +216,10 @@ func TestCreateSession(t *testing.T) {
 			t.Errorf("Expected HttpOnly flag in access token header: %s", accessTokenHeader)
 		}
 
+		if !strings.Contains(accessTokenHeader, "Secure") {
+			t.Errorf("Expected Secure flag in access token header: %s", accessTokenHeader)
+		}
+
 		if !strings.Contains(accessTokenHeader, "Path=/") {
 			t.Errorf("Expected Path=/ in access token header: %s", accessTokenHeader)
 		}
@@ -236,6 +240,10 @@ func TestCreateSession(t *testing.T) {
 
 		if !strings.Contains(refreshTokenHeader, "HttpOnly") {
 			t.Errorf("Expected HttpOnly flag in refresh token header: %s", refreshTokenHeader)
+		}
+
+		if !strings.Contains(refreshTokenHeader, "Secure") {
+			t.Errorf("Expected Secure flag in refresh token header: %s", refreshTokenHeader)
 		}
 
 		expectedRefreshMaxAge := fmt.Sprintf("Max-Age=%d", int((time.Hour * 24 * 7).Seconds()))
