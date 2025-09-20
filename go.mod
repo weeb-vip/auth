@@ -2,6 +2,8 @@ module github.com/weeb-vip/auth
 
 go 1.23.8
 
+toolchain go1.23.11
+
 require (
 	github.com/99designs/gqlgen v0.17.72
 	github.com/vektah/gqlparser/v2 v2.5.25

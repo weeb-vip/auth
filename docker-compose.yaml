@@ -1,5 +1,16 @@
 version: "3.9"  # optional since v1.27.0
 services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - '3306:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysecretpassword
+      - MYSQL_DATABASE=auth
+    volumes:
+      - 'mysql_db:/var/lib/mysql'
+    networks:
+      vps_network:
   postgres:
     image: postgres:13
     ports:
@@ -47,6 +58,7 @@ services:
     networks:
       vps_network:
 volumes:
+  mysql_db:
   postgres_db:
 
 networks:

@@ -8,6 +8,7 @@
     "ssl": "false"
   },
   "AppConfig": {
+    "Port": 8080,
     "KeyRollingDurationInHours": 1,
     "PasswordResetBaseURL": "http://localhost:8083/auth/password-reset",
     "CookieDomain": "localhost"

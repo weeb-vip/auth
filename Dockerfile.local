@@ -1,4 +1,10 @@
-FROM golang:1.18
+FROM golang:1.23
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    pkg-config \
+    librdkafka-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b $(go env GOPATH)/bin

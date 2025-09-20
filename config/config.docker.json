@@ -1,12 +1,14 @@
 {
   "dbconfig": {
-    "host": "postgres",
-    "user": "postgres",
+    "host": "mysql",
+    "user": "root",
     "password": "mysecretpassword",
     "db": "auth",
-    "port": "5432"
+    "port": 3306,
+    "ssl": "false"
   },
   "AppConfig": {
+    "Port": 8080,
     "PasswordResetBaseURL": "https://your-domain.com/auth/password-reset",
     "CookieDomain": ".weeb.vip"
   },
@@ -15,6 +17,9 @@
     "refreshtokenexpiredtopic": "refreshtokenexpired",
     "registrationcompletetopic": "registrationcomplete",
     "userloggedintopic": "userloggedin"
+  },
+  "userClient": {
+    "url": "http://localhost:8080"
   },
   "emailconfig": {
     "fromemail": "noreply@localhost",
