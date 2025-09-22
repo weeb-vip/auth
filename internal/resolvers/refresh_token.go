@@ -58,7 +58,7 @@ func RefreshToken(ctx context.Context, sessionService session.Session, refreshTo
 		HttpOnly: true,
 		Secure:   false, // Allow non-HTTPS for development
 		SameSite: http.SameSiteNoneMode,
-		MaxAge:   int(time.Hour.Seconds()), // 1 hour
+		MaxAge:   int((time.Minute * 15).Seconds()), // 15 minutes
 	}
 
 	refreshTokenCookie := &http.Cookie{

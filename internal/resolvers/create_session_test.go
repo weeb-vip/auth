@@ -224,7 +224,7 @@ func TestCreateSession(t *testing.T) {
 			t.Errorf("Expected Path=/ in access token header: %s", accessTokenHeader)
 		}
 
-		expectedAccessMaxAge := fmt.Sprintf("Max-Age=%d", int(time.Hour.Seconds()))
+		expectedAccessMaxAge := fmt.Sprintf("Max-Age=%d", int((time.Minute * 15).Seconds()))
 		if !strings.Contains(accessTokenHeader, expectedAccessMaxAge) {
 			t.Errorf("Expected %s in access token header: %s", expectedAccessMaxAge, accessTokenHeader)
 		}

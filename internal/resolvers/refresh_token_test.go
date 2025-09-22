@@ -107,7 +107,7 @@ func TestRefreshToken(t *testing.T) {
 			t.Errorf("Expected access token cookie path '/', got: %s", accessTokenCookie.Path)
 		}
 
-		expectedAccessMaxAge := int(time.Hour.Seconds())
+		expectedAccessMaxAge := int((time.Minute * 15).Seconds())
 		if accessTokenCookie.MaxAge != expectedAccessMaxAge {
 			t.Errorf("Expected access token cookie MaxAge %d, got: %d", expectedAccessMaxAge, accessTokenCookie.MaxAge)
 		}

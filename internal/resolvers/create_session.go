@@ -61,7 +61,7 @@ func CreateSession( // nolint
 		"access_token=%s; Path=/; Domain=%s; Max-Age=%d; HttpOnly; Secure; SameSite=None",
 		token,
 		config.APPConfig.CookieDomain, // Preserves leading dot if present
-		int(time.Hour.Seconds()),
+		int((time.Minute * 15).Seconds()),
 	)
 
 	refreshTokenCookieStr := fmt.Sprintf(
