@@ -56,7 +56,7 @@ func RefreshToken(ctx context.Context, sessionService session.Session, refreshTo
 		Path:     "/",
 		Domain:   config.APPConfig.CookieDomain,
 		HttpOnly: true,
-		Secure:   false, // Allow non-HTTPS for development
+		Secure:   true, // Allow non-HTTPS for development
 		SameSite: http.SameSiteNoneMode,
 		MaxAge:   int((time.Minute * 15).Seconds()), // 15 minutes
 	}
@@ -67,7 +67,7 @@ func RefreshToken(ctx context.Context, sessionService session.Session, refreshTo
 		Path:     "/",
 		Domain:   config.APPConfig.CookieDomain,
 		HttpOnly: true,
-		Secure:   false, // Allow non-HTTPS for development
+		Secure:   true, // Allow non-HTTPS for development
 		SameSite: http.SameSiteNoneMode,
 		MaxAge:   int((time.Hour * 24 * 7).Seconds()), // 7 days
 	}
