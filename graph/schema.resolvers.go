@@ -47,6 +47,11 @@ func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, username
 	return resolvers.ResendVerificationEmail(ctx, r.CredentialService, r.ValidationToken, r.MailService, &r.Config, username)
 }
 
+// Logout is the resolver for the Logout field.
+func (r *mutationResolver) Logout(ctx context.Context) (bool, error) {
+	return resolvers.Logout(ctx, &r.Config)
+}
+
 // AvailabilityByUsername is the resolver for the availabilityByUsername field.
 func (r *queryResolver) AvailabilityByUsername(ctx context.Context, username string) (bool, error) {
 	// this one will be converted to use dataloader in next release

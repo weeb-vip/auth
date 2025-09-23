@@ -14,4 +14,5 @@ type Mutation {
     RefreshToken(token: String!): SigninResult!
     VerifyEmail: Boolean! @Authenticated
     ResendVerificationEmail(username: String!): Boolean!
+    Logout: Boolean!
 }
