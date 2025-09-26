@@ -8,25 +8,11 @@ import (
 	"strings"
 )
 
-// GzipMiddleware handles both request decompression and response compression
+// GzipMiddleware handles response compression only
 func GzipMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			requestCompressed := false
 			responseCompressed := false
-
-			// Handle compressed request bodies
-			if r.Header.Get("Content-Encoding") == "gzip" {
-				gzipReader, err := gzip.NewReader(r.Body)
-				if err != nil {
-					log.Printf("Failed to decompress gzip request: %v", err)
-					http.Error(w, "Invalid gzip data", http.StatusBadRequest)
-					return
-				}
-				defer gzipReader.Close()
-				r.Body = gzipReader
-				requestCompressed = true
-			}
 
 			// Check if client accepts gzip encoding for response
 			if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
@@ -47,8 +33,8 @@ func GzipMiddleware() func(http.Handler) http.Handler {
 				Writer:         gzipWriter,
 			}
 
-			if requestCompressed || responseCompressed {
-				log.Printf("Gzip compression applied - request_compressed: %t, response_compressed: %t", requestCompressed, responseCompressed)
+			if responseCompressed {
+				log.Printf("Gzip response compression applied")
 			}
 
 			next.ServeHTTP(gzipResponseWriter, r)
