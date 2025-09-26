@@ -10,6 +10,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/http/handlers"
+	"github.com/weeb-vip/auth/http/middleware"
 	"github.com/weeb-vip/auth/internal/jwt"
 	"github.com/weeb-vip/auth/internal/keypair"
 	"github.com/weeb-vip/auth/internal/publishkey"
@@ -32,6 +33,8 @@ func StartServer() error { // nolint
 
 	router := chi.NewRouter()
 
+	// Add gzip compression middleware
+	router.Use(middleware.GzipMiddleware())
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:8081", "http://localhost:3000"},
 		AllowCredentials: true,
