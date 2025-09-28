@@ -1,9 +1,10 @@
 package auth
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -13,7 +14,11 @@ import (
 	"github.com/weeb-vip/auth/http/middleware"
 	"github.com/weeb-vip/auth/internal/jwt"
 	"github.com/weeb-vip/auth/internal/keypair"
+	"github.com/weeb-vip/auth/internal/logger"
+	"github.com/weeb-vip/auth/internal/metrics"
+	observabilityMiddleware "github.com/weeb-vip/auth/internal/middleware"
 	"github.com/weeb-vip/auth/internal/publishkey"
+	"github.com/weeb-vip/auth/internal/tracing"
 
 	"github.com/99designs/gqlgen/graphql/playground"
 )
@@ -21,10 +26,17 @@ import (
 const minKeyValidityDurationMinutes = 5
 
 func StartServer() error { // nolint
+	return StartServerWithContext(context.Background())
+}
+
+func StartServerWithContext(ctx context.Context) error {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		return err
 	}
+
+	// Initialize observability
+	initObservability(ctx, cfg)
 
 	rotatingKey, err := getRotatingSigningKey(cfg)
 	if err != nil {
@@ -32,6 +44,9 @@ func StartServer() error { // nolint
 	}
 
 	router := chi.NewRouter()
+
+	// Add observability middleware
+	router.Use(observabilityMiddleware.TracingMiddleware())
 
 	// Add gzip compression middleware
 	router.Use(middleware.GzipMiddleware())
@@ -41,8 +56,11 @@ func StartServer() error { // nolint
 		Debug:            false,
 	}).Handler)
 
+	// Add metrics endpoint
+	router.Handle("/metrics", metrics.NewPrometheusInstance().Handler())
+
 	router.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
-	router.Handle("/graphql", handlers.BuildRootHandler(jwt.New(rotatingKey)))
+	router.Handle("/graphql", handlers.BuildRootHandlerWithContext(ctx, jwt.New(rotatingKey)))
 	router.Handle("/readyz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200) // nolint
 	}))
@@ -50,9 +68,46 @@ func StartServer() error { // nolint
 		w.WriteHeader(200) // nolint
 	}))
 
-	log.Printf("connect to http://localhost:%d/ for GraphQL playground", cfg.APPConfig.Port)
+	log := logger.FromCtx(ctx)
+	log.Info().
+		Int("port", cfg.APPConfig.Port).
+		Msg("Starting auth server")
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", cfg.APPConfig.Port), router) // nolint
+}
+
+func initObservability(ctx context.Context, cfg *config.Config) {
+	environment := getEnvironment()
+
+	// Initialize logger
+	logger.Logger(
+		logger.WithServerName("auth-service"),
+		logger.WithVersion("1.0.0"),
+		logger.WithEnvironment(environment),
+	)
+
+	// Initialize tracing
+	tracedCtx, err := tracing.InitTracing(ctx, "auth-service")
+	if err != nil {
+		log := logger.FromCtx(ctx)
+		log.Error().Err(err).Msg("Failed to initialize tracing")
+	} else {
+		ctx = tracedCtx
+	}
+
+	// Initialize metrics
+	metrics.InitMetrics("auth-service", environment, "1.0.0")
+
+	log := logger.FromCtx(ctx)
+	log.Info().Msg("Observability initialized successfully")
+}
+
+func getEnvironment() string {
+	env := os.Getenv("ENV")
+	if env == "" {
+		return "development"
+	}
+	return env
 }
 
 func getRotatingSigningKey(cfg *config.Config) (keypair.RotatingSigningKey, error) {

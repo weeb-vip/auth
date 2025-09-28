@@ -9,6 +9,8 @@ import (
 	"github.com/weeb-vip/auth/graph/model"
 	"github.com/weeb-vip/auth/http/handlers/responsecontext"
 	"github.com/weeb-vip/auth/internal/jwt"
+	"github.com/weeb-vip/auth/internal/logger"
+	"github.com/weeb-vip/auth/internal/metrics"
 	"github.com/weeb-vip/auth/internal/services/refresh_token"
 
 	"github.com/weeb-vip/auth/internal/services/credential"
@@ -26,11 +28,31 @@ func CreateSession( // nolint
 	config *config.Config,
 	input *model.LoginInput,
 ) (*model.SigninResult, error) {
+	startTime := time.Now()
+	log := logger.FromCtx(ctx)
+
+	var username string
+	if input != nil {
+		username = input.Username
+	}
+
+	log.Info().
+		Str("username", username).
+		Msg("CreateSession started")
+
 	createdSession, err := createSession(ctx, input, sessionService, credentialService)
 
 	if err != nil {
-		_, err := handleError(ctx, "null", err)
+		metrics.GetAppMetrics().AuthRequestMetric("create_session", metrics.Error)
+		metrics.GetAppMetrics().SessionOperationMetric("create", metrics.Error)
 
+		log.Error().
+			Err(err).
+			Str("username", username).
+			Dur("duration", time.Since(startTime)).
+			Msg("CreateSession failed")
+
+		_, err := handleError(ctx, "null", err)
 		return nil, err
 	}
 
@@ -74,6 +96,15 @@ func CreateSession( // nolint
 	// Set cookies manually to bypass Go's domain normalization
 	responseWriter.Header().Add("Set-Cookie", accessTokenCookieStr)
 	responseWriter.Header().Add("Set-Cookie", refreshTokenCookieStr)
+
+	metrics.GetAppMetrics().AuthRequestMetric("create_session", metrics.Success)
+	metrics.GetAppMetrics().SessionOperationMetric("create", metrics.Success)
+
+	log.Info().
+		Str("username", username).
+		Str("user_id", createdSession.UserID).
+		Dur("duration", time.Since(startTime)).
+		Msg("CreateSession completed successfully")
 
 	return &model.SigninResult{
 		ID: createdSession.UserID,

@@ -3,16 +3,13 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"github.com/99designs/gqlgen/graphql"
-	"github.com/ThatCatDev/ep/v2/drivers"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/weeb-vip/auth/internal/services/mail"
-	"github.com/weeb-vip/auth/internal/services/mjml"
-	"go.uber.org/zap"
 	"net/http"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
+	"github.com/ThatCatDev/ep/v2/drivers"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/sirupsen/logrus"
 
 	epKafka "github.com/ThatCatDev/ep/v2/drivers/kafka"
@@ -26,7 +23,10 @@ import (
 	"github.com/weeb-vip/auth/internal/jwt"
 	logger2 "github.com/weeb-vip/auth/internal/logger"
 	"github.com/weeb-vip/auth/internal/measurements"
+	observabilityMiddleware "github.com/weeb-vip/auth/internal/middleware"
 	"github.com/weeb-vip/auth/internal/services/credential"
+	"github.com/weeb-vip/auth/internal/services/mail"
+	"github.com/weeb-vip/auth/internal/services/mjml"
 	"github.com/weeb-vip/auth/internal/services/passwordreset"
 	"github.com/weeb-vip/auth/internal/services/refresh_token"
 	"github.com/weeb-vip/auth/internal/services/session"
@@ -34,8 +34,12 @@ import (
 )
 
 func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
+	return BuildRootHandlerWithContext(context.Background(), tokenizer)
+}
+
+func BuildRootHandlerWithContext(ctx context.Context, tokenizer jwt.Tokenizer) http.Handler { // nolint
 	logrus.SetFormatter(&logrus.TextFormatter{})
-	log := logger2.Get()
+	log := logger2.FromCtx(ctx)
 
 	conf, err := config.LoadConfig()
 	if err != nil {
@@ -59,9 +63,9 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 	defer func(driver drivers.Driver[*kafka.Message]) {
 		err := driver.Close()
 		if err != nil {
-			log.Error("Error closing Kafka driver", zap.String("error", err.Error()))
+			log.Error().Err(err).Msg("Error closing Kafka driver")
 		} else {
-			log.Info("Kafka driver closed successfully")
+			log.Info().Msg("Kafka driver closed successfully")
 		}
 	}(driver)
 
@@ -96,6 +100,7 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(cfg))
 	srv.Use(apollotracing.Tracer{})
+	srv.Use(observabilityMiddleware.GraphQLTracingExtension{})
 
 	client := measurements.New()
 
@@ -113,9 +118,16 @@ func BuildRootHandler(tokenizer jwt.Tokenizer) http.Handler { // nolint
 func kafkaProducer(ctx context.Context, driver drivers.Driver[*kafka.Message], topic string) func(ctx context.Context, message *kafka.Message) error {
 	return func(ctx context.Context, message *kafka.Message) error {
 		log := logger2.FromCtx(ctx)
-		log.Info("Producing message to Kafka", zap.String("topic", topic), zap.String("key", string(message.Key)), zap.String("value", string(message.Value)))
+		log.Info().
+			Str("topic", topic).
+			Str("key", string(message.Key)).
+			Str("value", string(message.Value)).
+			Msg("Producing message to Kafka")
 		if err := driver.Produce(ctx, topic, message); err != nil {
-			log.Error("Failed to produce message", zap.String("topic", topic), zap.Error(err))
+			log.Error().
+				Err(err).
+				Str("topic", topic).
+				Msg("Failed to produce message")
 			return err
 		}
 		return nil

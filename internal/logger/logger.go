@@ -2,50 +2,97 @@ package logger
 
 import (
 	"context"
+	"os"
 	"sync"
 
-	"go.uber.org/zap"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/otel/trace"
 )
 
-type ctxKey struct{}
+type Option func(*Config)
 
-var once sync.Once
-
-var logger *zap.Logger
-
-// Get initializes a zap.Logger instance if it has not been initialized
-// already and returns the same instance for subsequent calls.
-func Get() *zap.Logger {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		panic(err)
-	}
-	defer logger.Sync() // flushes buffer, if any
-
-	return logger
+type Config struct {
+	ServiceName    string
+	ServiceVersion string
+	Environment    string
 }
 
-// FromCtx returns the Logger associated with the ctx. If no logger
-// is associated, the default logger is returned, unless it is nil
-// in which case a disabled logger is returned.
-func FromCtx(ctx context.Context) *zap.Logger {
-	if l, ok := ctx.Value(ctxKey{}).(*zap.Logger); ok {
-		return l
-	} else if l := logger; l != nil {
-		return l
-	}
+var (
+	globalLogger zerolog.Logger
+	once         sync.Once
+)
 
-	return zap.NewNop()
+func WithServerName(name string) Option {
+	return func(c *Config) {
+		c.ServiceName = name
+	}
 }
 
-// WithCtx returns a copy of ctx with the Logger attached.
-func WithCtx(ctx context.Context, l *zap.Logger) context.Context {
-	if lp, ok := ctx.Value(ctxKey{}).(*zap.Logger); ok {
-		if lp == l {
-			// Do not store same logger.
-			return ctx
+func WithVersion(version string) Option {
+	return func(c *Config) {
+		c.ServiceVersion = version
+	}
+}
+
+func WithEnvironment(env string) Option {
+	return func(c *Config) {
+		c.Environment = env
+	}
+}
+
+func Logger(opts ...Option) {
+	once.Do(func() {
+		config := &Config{
+			ServiceName:    "auth-service",
+			ServiceVersion: "1.0.0",
+			Environment:    "development",
 		}
+
+		for _, opt := range opts {
+			opt(config)
+		}
+
+		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
+		var logger zerolog.Logger
+		if config.Environment == "development" {
+			output := zerolog.ConsoleWriter{Out: os.Stdout}
+			logger = zerolog.New(output)
+		} else {
+			logger = zerolog.New(os.Stdout)
+		}
+
+		globalLogger = logger.
+			Level(zerolog.InfoLevel).
+			With().
+			Timestamp().
+			Str("service", config.ServiceName).
+			Str("version", config.ServiceVersion).
+			Str("environment", config.Environment).
+			Logger()
+
+		log.Logger = globalLogger
+	})
+}
+
+func FromCtx(ctx context.Context) zerolog.Logger {
+	return withTraceContext(ctx, globalLogger)
+}
+
+func Global() zerolog.Logger {
+	return globalLogger
+}
+
+func withTraceContext(ctx context.Context, logger zerolog.Logger) zerolog.Logger {
+	span := trace.SpanFromContext(ctx)
+	if !span.IsRecording() {
+		return logger
 	}
 
-	return context.WithValue(ctx, ctxKey{}, l)
+	spanContext := span.SpanContext()
+	return logger.With().
+		Str("trace_id", spanContext.TraceID().String()).
+		Str("span_id", spanContext.SpanID().String()).
+		Logger()
 }
