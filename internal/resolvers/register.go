@@ -3,15 +3,14 @@ package resolvers
 import (
 	"context"
 	"fmt"
-	"github.com/weeb-vip/auth/config"
-	"github.com/weeb-vip/auth/internal/services/mail"
-	"log"
 	"net/url"
 
+	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/graph/model"
-	"github.com/weeb-vip/auth/internal/services/validation_token"
-
+	"github.com/weeb-vip/auth/internal/logger"
 	"github.com/weeb-vip/auth/internal/services/credential"
+	"github.com/weeb-vip/auth/internal/services/mail"
+	"github.com/weeb-vip/auth/internal/services/validation_token"
 )
 
 func Register( // nolint
@@ -48,12 +47,23 @@ func Register( // nolint
 	query.Set("email", username)
 	resetURL.RawQuery = query.Encode()
 
+	log := logger.FromCtx(ctx)
+	log.Info().
+		Str("email", username).
+		Str("verification_url", resetURL.String()).
+		Msg("Sending verification email")
+
 	err = mailService.SendMail(ctx, []string{username}, "Email Verification", "verification.mjml", map[string]string{
 		"token_url": resetURL.String(),
 		"name":      username,
 	})
+	if err != nil {
+		log.Error().Err(err).Str("email", username).Msg("Failed to send verification email")
+	} else {
+		log.Info().Str("email", username).Msg("Successfully sent verification email")
+	}
 
-	log.Println(token)
+	log.Debug().Str("token", token).Msg("Verification token generated")
 
 	return &model.RegisterResult{
 		ID: credentials.UserID,
