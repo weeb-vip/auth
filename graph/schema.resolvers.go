@@ -42,6 +42,11 @@ func (r *mutationResolver) VerifyEmail(ctx context.Context) (bool, error) {
 	return resolvers.EmailVerification(ctx, r.CredentialService, r.UserProducer)
 }
 
+// VerifyEmailWithUser is the resolver for the VerifyEmailWithUser field.
+func (r *mutationResolver) VerifyEmailWithUser(ctx context.Context) (*model.EmailVerificationResult, error) {
+	return resolvers.EmailVerificationWithUser(ctx, r.CredentialService, r.UserProducer)
+}
+
 // ResendVerificationEmail is the resolver for the ResendVerificationEmail field.
 func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, username string) (bool, error) {
 	return resolvers.ResendVerificationEmail(ctx, r.CredentialService, r.ValidationToken, r.MailService, &r.Config, username)

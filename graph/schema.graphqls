@@ -12,7 +12,8 @@ type Mutation {
     RequestPasswordReset(input: RequestPasswordResetInput!): Boolean!
     ResetPassword(input: ResetPasswordInput!): Boolean!
     RefreshToken(token: String!): SigninResult!
-    VerifyEmail: Boolean! @Authenticated
+    VerifyEmail: Boolean! @Authenticated @deprecated(reason: "Use VerifyEmailWithUser, which returns the verified user's id for analytics/identity linkage.")
+    VerifyEmailWithUser: EmailVerificationResult! @Authenticated
     ResendVerificationEmail(username: String!): Boolean!
     Logout: Boolean!
 }
