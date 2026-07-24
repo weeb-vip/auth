@@ -50,6 +50,11 @@ type RegisterResult {
     id: String!
 }
 
+type EmailVerificationResult {
+    success: Boolean!
+    userID: ID
+}
+
 input RequestPasswordResetInput {
     username: String!
     email: String!

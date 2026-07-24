@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/weeb-vip/auth/config"
+	"github.com/weeb-vip/auth/graph/model"
 	"github.com/weeb-vip/auth/http/handlers/logger"
 	"github.com/weeb-vip/auth/http/handlers/requestinfo"
 	"github.com/weeb-vip/auth/internal/services/credential"
@@ -19,38 +20,63 @@ type UserCreatedEvent struct {
 	Email  string `json:"email"`
 }
 
+// EmailVerification is the legacy resolver returning only a success boolean.
+// Deprecated: prefer EmailVerificationWithUser, which also returns the verified
+// user's id so callers can link identity (e.g. analytics) on the verify page.
 func EmailVerification( // nolint
 	ctx context.Context,
 	credentialService credential.Credential,
 	userProducer func(ctx context.Context, message *kafka.Message) error,
 ) (bool, error) {
+	_, ok, err := verifyEmailAndActivate(ctx, credentialService, userProducer)
+	return ok, err
+}
+
+// EmailVerificationWithUser activates the caller's credentials and returns the
+// verified user's id alongside the success flag.
+func EmailVerificationWithUser( // nolint
+	ctx context.Context,
+	credentialService credential.Credential,
+	userProducer func(ctx context.Context, message *kafka.Message) error,
+) (*model.EmailVerificationResult, error) {
+	userID, ok, err := verifyEmailAndActivate(ctx, credentialService, userProducer)
+	result := &model.EmailVerificationResult{Success: ok}
+	if userID != "" {
+		uid := userID
+		result.UserID = &uid
+	}
+	return result, err
+}
+
+// verifyEmailAndActivate holds the shared verification logic. It returns the
+// verified user's id (empty when unavailable), whether activation succeeded,
+// and any error. Semantics match the original EmailVerification exactly,
+// including returning success=true even if the downstream event fails to
+// produce.
+func verifyEmailAndActivate(
+	ctx context.Context,
+	credentialService credential.Credential,
+	userProducer func(ctx context.Context, message *kafka.Message) error,
+) (string, bool, error) {
 	log := logger.FromContext(ctx)
 	req := requestinfo.FromContext(ctx)
 
 	userID := req.UserID
 	if userID == nil {
 		log.Error("User ID is missing")
-		return false, nil
+		return "", false, nil
 	}
 
 	err := credentialService.ActivateCredentials(ctx, *userID)
 	if err != nil {
-		res, err := handleError(ctx, "false", err)
-		if res != nil {
-			return false, err
-		}
-
-		return false, err
+		_, err := handleError(ctx, "false", err)
+		return "", false, err
 	}
 
 	credentials, err := credentialService.GetCredentialsByIdentifier(ctx, *userID)
 	if err != nil {
-		res, err := handleError(ctx, "false", err)
-		if res != nil {
-			return false, err
-		}
-
-		return false, err
+		_, err := handleError(ctx, "false", err)
+		return "", false, err
 	}
 
 	userCreatedEvent := UserCreatedEvent{
@@ -66,10 +92,10 @@ func EmailVerification( // nolint
 
 	if err != nil {
 		log.Errorf("Failed to produce user activated event: %v", err)
-		return true, err
+		return credentials.UserID, true, err
 	}
 
-	return true, nil
+	return credentials.UserID, true, nil
 }
 
 func ResendVerificationEmail( // nolint
