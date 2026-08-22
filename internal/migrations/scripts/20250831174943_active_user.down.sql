@@ -1,2 +1,2 @@
-ALTER TABLE `credentials`
+ALTER TABLE credentials
     DROP COLUMN active;

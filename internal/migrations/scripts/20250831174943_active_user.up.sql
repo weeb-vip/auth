@@ -1,2 +1,2 @@
-ALTER TABLE `credentials`
-    ADD COLUMN `active` BOOLEAN DEFAULT FALSE;
+ALTER TABLE credentials
+    ADD COLUMN active BOOLEAN DEFAULT FALSE;
