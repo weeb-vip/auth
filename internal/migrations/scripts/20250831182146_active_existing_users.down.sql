@@ -1,1 +1,1 @@
-UPDATE `credentials` SET `active` = FALSE;
+UPDATE credentials SET active = FALSE;

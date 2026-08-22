@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS credentials
     username   varchar(255) NOT NULL,
     type       varchar(255) NOT NULL,
     value      varchar(255) NOT NULL,
-    created_at timestamp    NOT NULL,
-    updated_at timestamp    NOT NULL
+    created_at timestamptz    NOT NULL,
+    updated_at timestamptz    NOT NULL
 );
