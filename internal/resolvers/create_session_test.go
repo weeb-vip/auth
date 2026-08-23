@@ -14,8 +14,8 @@ import (
 	"github.com/weeb-vip/auth/internal/db"
 	"github.com/weeb-vip/auth/internal/jwt"
 	CredentialModels "github.com/weeb-vip/auth/internal/services/credential/models"
-	SessionModels "github.com/weeb-vip/auth/internal/services/session/models"
 	RefreshTokenModels "github.com/weeb-vip/auth/internal/services/refresh_token/models"
+	SessionModels "github.com/weeb-vip/auth/internal/services/session/models"
 
 	"go.uber.org/mock/gomock"
 )

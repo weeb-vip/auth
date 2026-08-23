@@ -16,6 +16,8 @@ type Config struct {
 	UserClient         UserClientConfig
 	EmailConfig        EmailConfig
 	KafkaConfig        KafkaConfig
+	NatsConfig         NatsConfig
+	ProducerType       string `default:"kafka" env:"PRODUCER_TYPE"`
 }
 
 type AppConfig struct {
@@ -63,6 +65,23 @@ type KafkaConfig struct {
 	BootstrapServers  string `default:"localhost:9092" env:"KAFKA_BOOTSTRAP_SERVERS"`
 	Offset            string `default:"earliest" env:"KAFKA_OFFSET"`
 	ProducerTopic     string `default:"user_created" env:"KAFKA_PRODUCER_TOPIC"`
+}
+
+// NatsConfig mirrors the producer half of KafkaConfig.
+//
+// Which of the two is used is decided by ProducerType at startup rather than
+// by a separate binary or command: this producer lives inside the GraphQL
+// handler, so there is no command name to select a transport with the way the
+// consumers have.
+type NatsConfig struct {
+	URL string `default:"nats://localhost:4222" env:"NATSURL"`
+
+	// Empty StreamName: user-created is produced here, not by Debezium, so the
+	// driver creates a stream from the subject rather than binding to the CDC
+	// one.
+	StreamName string `env:"NATSSTREAMNAME"`
+
+	ProducerSubject string `default:"user_created" env:"NATSPRODUCERSUBJECT"`
 }
 
 func LoadConfig() (*Config, error) {

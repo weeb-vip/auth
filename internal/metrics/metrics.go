@@ -17,7 +17,7 @@ type AppMetrics struct {
 }
 
 var (
-	appMetrics *AppMetrics
+	appMetrics  *AppMetrics
 	metricsOnce sync.Once
 )
 

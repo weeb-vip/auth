@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/graph/model"
 	"github.com/weeb-vip/auth/http/handlers/logger"
@@ -26,7 +25,7 @@ type UserCreatedEvent struct {
 func EmailVerification( // nolint
 	ctx context.Context,
 	credentialService credential.Credential,
-	userProducer func(ctx context.Context, message *kafka.Message) error,
+	userProducer func(ctx context.Context, value []byte) error,
 ) (bool, error) {
 	_, ok, err := verifyEmailAndActivate(ctx, credentialService, userProducer)
 	return ok, err
@@ -37,7 +36,7 @@ func EmailVerification( // nolint
 func EmailVerificationWithUser( // nolint
 	ctx context.Context,
 	credentialService credential.Credential,
-	userProducer func(ctx context.Context, message *kafka.Message) error,
+	userProducer func(ctx context.Context, value []byte) error,
 ) (*model.EmailVerificationResult, error) {
 	userID, ok, err := verifyEmailAndActivate(ctx, credentialService, userProducer)
 	result := &model.EmailVerificationResult{Success: ok}
@@ -56,7 +55,7 @@ func EmailVerificationWithUser( // nolint
 func verifyEmailAndActivate(
 	ctx context.Context,
 	credentialService credential.Credential,
-	userProducer func(ctx context.Context, message *kafka.Message) error,
+	userProducer func(ctx context.Context, value []byte) error,
 ) (string, bool, error) {
 	log := logger.FromContext(ctx)
 	req := requestinfo.FromContext(ctx)
@@ -86,9 +85,7 @@ func verifyEmailAndActivate(
 
 	payloadBytes, err := json.Marshal(userCreatedEvent)
 
-	err = userProducer(ctx, &kafka.Message{
-		Value: payloadBytes,
-	})
+	err = userProducer(ctx, payloadBytes)
 
 	if err != nil {
 		log.Errorf("Failed to produce user activated event: %v", err)
