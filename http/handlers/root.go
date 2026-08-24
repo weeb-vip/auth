@@ -8,11 +8,8 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
-	"github.com/ThatCatDev/ep/v2/drivers"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/sirupsen/logrus"
 
-	epKafka "github.com/ThatCatDev/ep/v2/drivers/kafka"
 	"github.com/weeb-vip/auth/config"
 	"github.com/weeb-vip/auth/graph"
 	"github.com/weeb-vip/auth/graph/generated"
@@ -46,28 +43,20 @@ func BuildRootHandlerWithContext(ctx context.Context, tokenizer jwt.Tokenizer) h
 		panic(err)
 	}
 
-	kafkaConfig := &epKafka.KafkaConfig{
-		ConsumerGroupName:        conf.KafkaConfig.ConsumerGroupName,
-		BootstrapServers:         conf.KafkaConfig.BootstrapServers,
-		SaslMechanism:            nil,
-		SecurityProtocol:         nil,
-		Username:                 nil,
-		Password:                 nil,
-		ConsumerSessionTimeoutMs: nil,
-		ConsumerAutoOffsetReset:  &conf.KafkaConfig.Offset,
-		ClientID:                 nil,
-		Debug:                    nil,
+	// The publisher outlives this function on purpose.
+	//
+	// This builds the handler once at startup (see server.go), so the driver
+	// has to survive for the life of the process. The previous code deferred
+	// driver.Close() here, which closed it the moment the builder returned --
+	// before a single request had been served. Closing is left to process exit.
+	publish, _, err := newPublisher(*conf)
+	if err != nil {
+		panic(err)
 	}
 
-	driver := epKafka.NewKafkaDriver(kafkaConfig)
-	defer func(driver drivers.Driver[*kafka.Message]) {
-		err := driver.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("Error closing Kafka driver")
-		} else {
-			log.Info().Msg("Kafka driver closed successfully")
-		}
-	}(driver)
+	// Worth a line at startup: which broker this writes to is otherwise
+	// invisible until something downstream notices events are missing.
+	log.Info().Str("producer_type", conf.ProducerType).Msg("Event producer configured")
 
 	authenticationService := credential.NewCredentialService()
 	passwordResetService := passwordreset.NewPasswordResetService()
@@ -85,7 +74,7 @@ func BuildRootHandlerWithContext(ctx context.Context, tokenizer jwt.Tokenizer) h
 		RefreshTokenService:  refreshTokenService,
 		ValidationToken:      validationTokenService,
 		MailService:          mailService,
-		UserProducer:         kafkaProducer(context.Background(), driver, conf.KafkaConfig.ProducerTopic),
+		UserProducer:         publish,
 	}
 	cfg := generated.Config{Resolvers: resolvers}
 	cfg.Directives.Authenticated = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
@@ -113,23 +102,4 @@ func BuildRootHandlerWithContext(ctx context.Context, tokenizer jwt.Tokenizer) h
 	}
 
 	return requestinfo.Handler()(logger.Handler()(metrics.Handler(client)(responseContextHandler(srv))))
-}
-
-func kafkaProducer(ctx context.Context, driver drivers.Driver[*kafka.Message], topic string) func(ctx context.Context, message *kafka.Message) error {
-	return func(ctx context.Context, message *kafka.Message) error {
-		log := logger2.FromCtx(ctx)
-		log.Info().
-			Str("topic", topic).
-			Str("key", string(message.Key)).
-			Str("value", string(message.Value)).
-			Msg("Producing message to Kafka")
-		if err := driver.Produce(ctx, topic, message); err != nil {
-			log.Error().
-				Err(err).
-				Str("topic", topic).
-				Msg("Failed to produce message")
-			return err
-		}
-		return nil
-	}
 }

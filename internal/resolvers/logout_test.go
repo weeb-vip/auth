@@ -13,20 +13,20 @@ import (
 
 func TestLogout(t *testing.T) {
 	tests := []struct {
-		name         string
-		cookieDomain string
+		name                       string
+		cookieDomain               string
 		expectedAccessTokenCookie  string
 		expectedRefreshTokenCookie string
 	}{
 		{
-			name:         "logout with standard domain",
-			cookieDomain: ".weeb.vip",
+			name:                       "logout with standard domain",
+			cookieDomain:               ".weeb.vip",
 			expectedAccessTokenCookie:  "access_token=; Path=/; Domain=.weeb.vip; Max-Age=0; HttpOnly; Secure; SameSite=None",
 			expectedRefreshTokenCookie: "refresh_token=; Path=/; Domain=.weeb.vip; Max-Age=0; HttpOnly; Secure; SameSite=None",
 		},
 		{
-			name:         "logout with localhost domain",
-			cookieDomain: "localhost",
+			name:                       "logout with localhost domain",
+			cookieDomain:               "localhost",
 			expectedAccessTokenCookie:  "access_token=; Path=/; Domain=localhost; Max-Age=0; HttpOnly; Secure; SameSite=None",
 			expectedRefreshTokenCookie: "refresh_token=; Path=/; Domain=localhost; Max-Age=0; HttpOnly; Secure; SameSite=None",
 		},
